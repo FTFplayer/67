@@ -5,7 +5,7 @@ Config = {
     provider = "Key system"
 }
 local function main()
-Print("oẻnkeidido")
+print("Hello, World!")
 end
 if getgenv().RedExecutorKeySys then
     getgenv().RedExecutorKeySys = false
