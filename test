@@ -1,12 +1,12 @@
--- 1509
 Config = {
     api = "c1d8e411-3771-4b0c-8989-24adfff9549a",
     service = "Key system FTF",
     provider = "Key system"
 }
 local function main()
-   print("Hello, World!")
+print("Hello, World!")
 end
+
 if getgenv().RedExecutorKeySys then
     getgenv().RedExecutorKeySys = false
 end
@@ -60,12 +60,7 @@ local KeySystemData = {
 }
 
 local function saveKey(key)
-    if writefile and makefolder then
-        local folderPath = "redexecutor"
-        if not isfolder(folderPath) then
-            makefolder(folderPath)
-        end
-        
+    if writefile then
         writefile(KeySystemData.FileName, key)
     end
 end
