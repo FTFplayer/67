@@ -1,2 +1,2 @@
-893973440
+place id 893973440
 loadstring(game:HttpGet("https://raw.githubusercontent.com/FTFplayer/67/refs/heads/main/Menu%20Modified"))()
