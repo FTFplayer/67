@@ -888,7 +888,7 @@ local function stopBeastTracker()
     skillDetected = false; canDetectDrop = true -- Reset về True
 end
 
--- ===== HÀM SURVIVOR TRACKER =====
+-- ===== HÀM SURVIVOR TRACKER (FIX ĐỒNG BỘ BỘ ĐẾM + LƯU THỜI GIAN) =====
 local SurvivorTracker = {}
 SurvivorTracker.enabled = false
 SurvivorTracker.connections = {}
@@ -898,8 +898,10 @@ SurvivorTracker.uiElements = {}
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local CoreGui = game:GetService("CoreGui")
+local UIS = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 
+-- Tìm Beast hiện tại
 local function getBeast()
     for _, player in ipairs(Players:GetPlayers()) do
         local stats = player:FindFirstChild("TempPlayerStatsModule")
@@ -910,7 +912,17 @@ local function getBeast()
     return nil
 end
 
-local function initUI()
+-- Rút gọn tên cho bảng trên đầu
+local function shortenName(name)
+    if #name > 8 then
+        return string.sub(name, 1, 8) .. "..."
+    else
+        return name
+    end
+end
+
+-- 1. TẠO UI GÓC MÀN HÌNH (Khởi tạo 1 lần)
+local function initScreenUI()
     if SurvivorTracker.uiElements.gui then return end
     
     local gui = Instance.new("ScreenGui")
@@ -939,7 +951,8 @@ local function initUI()
     SurvivorTracker.uiElements.container = container
 end
 
-local function createTimerUI(player)
+-- 2. TẠO KHUNG TÊN TRONG GÓC MÀN HÌNH
+local function createScreenTimer(player)
     local frame = Instance.new("Frame")
     frame.Size = UDim2.new(1, 0, 0, 28)
     frame.BackgroundTransparency = 0.3
@@ -974,46 +987,103 @@ local function createTimerUI(player)
     return frame, timeLabel
 end
 
+-- 3. TẠO CHỮ LƠ LỬNG TRÊN ĐẦU
+local function createHeadTimer(char, name)
+    local head = char:FindFirstChild("Head")
+    if not head then return nil, nil end
+
+    local billboard = Instance.new("BillboardGui")
+    billboard.Size = UDim2.new(0, 100, 0, 50)
+    billboard.StudsOffset = Vector3.new(0, 2.5, 0)
+    billboard.AlwaysOnTop = (LocalPlayer ~= getBeast())
+    billboard.Parent = head
+
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
+    textLabel.BackgroundTransparency = 1
+    textLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+    textLabel.Font = Enum.Font.SourceSansBold
+    textLabel.TextStrokeTransparency = 0
+    textLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
+    textLabel.TextWrapped = true
+    textLabel.TextYAlignment = Enum.TextYAlignment.Center
+    textLabel.Text = shortenName(name) .. "\n28s"
+
+    if UIS.TouchEnabled then
+        textLabel.TextScaled = true
+    else
+        textLabel.TextScaled = false
+        textLabel.TextSize = 20
+    end
+
+    textLabel.Parent = billboard
+    return billboard, textLabel
+end
+
+-- 4. HIDE TIMER: CHỈ XÓA GIAO DIỆN MÀ VẪN GIỮ LẠI BỘ ĐẾM BÊN TRONG KHI TẮT MENU
 local function hideTimerUI(player)
     if SurvivorTracker.activeTimers[player] then
-        if SurvivorTracker.activeTimers[player].frame then
-            SurvivorTracker.activeTimers[player].frame:Destroy()
-            SurvivorTracker.activeTimers[player].frame = nil
-            SurvivorTracker.activeTimers[player].timeLabel = nil
-        end
+        local data = SurvivorTracker.activeTimers[player]
+        if data.screenFrame then data.screenFrame:Destroy() end
+        if data.headGui then data.headGui:Destroy() end
+        
+        -- Chỉ set nil cho giao diện, vẫn giữ nguyên cục data chứa startTime
+        data.screenFrame = nil
+        data.screenTimeLabel = nil
+        data.headGui = nil
+        data.headLabel = nil
     end
 end
 
+-- 5. STOP TIMER: ĐỨA NÀO ĐƯỢC CỨU HOẶC CHẾT THÌ HỦY TOÀN BỘ
 local function stopTimer(player)
     if SurvivorTracker.activeTimers[player] then
-        if SurvivorTracker.activeTimers[player].frame then
-            SurvivorTracker.activeTimers[player].frame:Destroy()
-        end
+        hideTimerUI(player)
         SurvivorTracker.activeTimers[player] = nil
     end
 end
 
+-- 6. BẮT ĐẦU ĐẾM
 local function startTimer(player)
+    local char = player.Character
+    if not char then return end
+
+    -- Nếu chưa có dữ liệu thì mới bắt đầu đếm từ đầu
     if not SurvivorTracker.activeTimers[player] then
         SurvivorTracker.activeTimers[player] = {
             startTime = os.clock(),
-            frame = nil,
-            timeLabel = nil
+            screenFrame = nil,
+            screenTimeLabel = nil,
+            headGui = nil,
+            headLabel = nil
         }
     end
     
-    if not SurvivorTracker.activeTimers[player].frame then
-        local f, t = createTimerUI(player)
-        SurvivorTracker.activeTimers[player].frame = f
-        SurvivorTracker.activeTimers[player].timeLabel = t
+    local data = SurvivorTracker.activeTimers[player]
+    
+    -- Phục hồi/tạo mới giao diện nếu chưa có (khi bật tắt tracker)
+    if not data.screenFrame and SurvivorTracker.uiElements.container then
+        local sf, st = createScreenTimer(player)
+        data.screenFrame = sf
+        data.screenTimeLabel = st
+    end
+    
+    if not data.headGui then
+        local hg, hl = createHeadTimer(char, player.Name)
+        data.headGui = hg
+        data.headLabel = hl
     end
 end
 
+-- ==================== VÒNG LẶP CHÍNH ====================
 function SurvivorTracker.start()
     if SurvivorTracker.enabled then return end
     SurvivorTracker.enabled = true
-    initUI()
-    SurvivorTracker.uiElements.gui.Enabled = true
+    
+    initScreenUI()
+    if SurvivorTracker.uiElements.gui then
+        SurvivorTracker.uiElements.gui.Enabled = true
+    end
 
     local heartbeatConn = RunService.Heartbeat:Connect(function()
         if not SurvivorTracker.enabled then return end
@@ -1023,7 +1093,9 @@ function SurvivorTracker.start()
             if plr ~= LocalPlayer and plr ~= beast then
                 local char = plr.Character
                 local humanoid = char and char:FindFirstChild("Humanoid")
+                
                 if humanoid then
+                    -- Nếu đang ngã (Bị Beast đập)
                     if humanoid.PlatformStand or humanoid.JumpPower == 0 then
                         startTimer(plr)
                     else
@@ -1037,14 +1109,25 @@ function SurvivorTracker.start()
             end
         end
 
+        -- TÍNH TOÁN 1 BỘ ĐẾM DUY NHẤT VÀ ÁP DỤNG ĐỒNG THỜI
         for player, data in pairs(SurvivorTracker.activeTimers) do
             local elapsed = os.clock() - data.startTime
             local timeLeft = math.max(0, 28.050 - elapsed)
             
-            if data.timeLabel then
-                data.timeLabel.Text = string.format("%.3fs", timeLeft)
+            -- Ép chung 1 định dạng: 1 số lẻ (VD: 25.4s) cho nó mượt mà lại dễ nhìn
+            local timeString = string.format("%.1fs", timeLeft)
+            
+            -- Update UI góc phải
+            if data.screenTimeLabel then
+                data.screenTimeLabel.Text = timeString
             end
 
+            -- Update UI trên đầu
+            if data.headLabel then
+                data.headLabel.Text = shortenName(player.Name) .. "\n" .. timeString
+            end
+
+            -- Chết hoặc hết giờ
             if timeLeft <= 0 then
                 stopTimer(player)
             end
@@ -1053,8 +1136,8 @@ function SurvivorTracker.start()
     
     table.insert(SurvivorTracker.connections, heartbeatConn)
     
-    local playerRemovingConn = Players.PlayerRemoving:Connect(function(player)
-        stopTimer(player)
+    local playerRemovingConn = Players.PlayerRemoving:Connect(function(plr)
+        stopTimer(plr)
     end)
     table.insert(SurvivorTracker.connections, playerRemovingConn)
 end
@@ -1072,8 +1155,9 @@ function SurvivorTracker.stop()
     end
     SurvivorTracker.connections = {}
     
-    for player, _ in pairs(SurvivorTracker.activeTimers) do
-        hideTimerUI(player)
+    -- CHỈ ẨN GIAO DIỆN (HIDE), KHÔNG ĐƯỢC XÓA BỘ ĐẾM NHƯ LÚC NÃY
+    for plr, _ in pairs(SurvivorTracker.activeTimers) do
+        hideTimerUI(plr)
     end
 end
 
