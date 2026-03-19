@@ -741,7 +741,7 @@ end)
 
 UIS.InputBegan:Connect(function(input, gameProcessed)
 	if gameProcessed then return end
-	if input.KeyCode == Enum.KeyCode.LeftControl then
+	if input.KeyCode == Enum.KeyCode.V then
 		ESPMenuWindow.Visible = false
 		ToolsMenuWindow.Visible = false
 		MainMenuWindow.Visible = not MainMenuWindow.Visible
