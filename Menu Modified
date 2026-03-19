@@ -375,6 +375,64 @@ function Timer1.stop()
     end
 end
 
+-- ===== HÀM FLASHLIGHT =====
+local Flashlight = {}
+Flashlight.enabled = false
+Flashlight.connections = {}
+Flashlight.originalSettings = {}
+
+local Light = game:GetService("Lighting")
+
+local function dofullbright()
+    Light.Ambient = Color3.new(1, 1, 1)
+    Light.ColorShift_Bottom = Color3.new(1, 1, 1)
+    Light.ColorShift_Top = Color3.new(1, 1, 1)
+end
+
+function Flashlight.start()
+    if Flashlight.enabled then return end
+    Flashlight.enabled = true
+    
+    -- Lưu cài đặt gốc
+    Flashlight.originalSettings = {
+        Ambient = Light.Ambient,
+        ColorShift_Bottom = Light.ColorShift_Bottom,
+        ColorShift_Top = Light.ColorShift_Top
+    }
+    
+    -- Bật fullbright
+    dofullbright()
+    
+    -- Lưu connection để dọn dẹp sau
+    local conn = Light.LightingChanged:Connect(function()
+        if Flashlight.enabled then
+            dofullbright()
+        end
+    end)
+    table.insert(Flashlight.connections, conn)
+    
+end
+
+function Flashlight.stop()
+    Flashlight.enabled = false
+    
+    -- Disconnect tất cả connections
+    for _, conn in pairs(Flashlight.connections) do
+        if typeof(conn) == "RBXScriptConnection" then
+            conn:Disconnect()
+        end
+    end
+    Flashlight.connections = {}
+    
+    -- Khôi phục cài đặt gốc
+    if Flashlight.originalSettings.Ambient then
+        Light.Ambient = Flashlight.originalSettings.Ambient
+        Light.ColorShift_Bottom = Flashlight.originalSettings.ColorShift_Bottom
+        Light.ColorShift_Top = Flashlight.originalSettings.ColorShift_Top
+    end
+    
+end
+
 -- ===== HÀM SOUND MUTING (BẢN TỐI ƯU SIÊU NHẸ) =====
 local SoundMuting = {}
 SoundMuting.enabled = false
