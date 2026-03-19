@@ -1,3 +1,1 @@
-if game.PlaceId == 893973440 then
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/FTFplayer/67/refs/heads/main/Menu%20Modified"))()
-end
+loadstring(game:HttpGet("https://raw.githubusercontent.com/FTFplayer/67/refs/heads/main/Menu%20Modified"))()
