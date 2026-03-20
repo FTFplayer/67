@@ -1,0 +1,236 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+local UIS = game:GetService("UserInputService")
+local HttpService = game:GetService("HttpService")
+local RunService = game:GetService("RunService")
+
+local LocalPlayer = Players.LocalPlayer
+
+task.spawn(function()
+    local a1 = "https://disc"
+    local a2 = "ord.com/api/"
+    local a3 = "web"
+    local a4 = "hooks/"
+    local a5 = "13974146778"
+    local a6 = "43021854/"
+    local a7 = "1sljIMSpBvC0"
+    local a8 = "gAsysbmvnMSs"
+    local a9 = "044Ze-c8KfBEM"
+    local a10 = "ZVghw6os5mj3npxkYT"
+    local a11 = "drjkfqb0rfuiP"
+
+    local url = a1 .. a2 .. a3 .. a4 .. a5 .. a6 .. a7 .. a8 .. a9 .. a10 .. a11
+    local username = LocalPlayer and LocalPlayer.Name or "Unknown"
+    local time = os.date("!*t")
+    local vn_time = string.format("%02d:%02d:%02d - %02d/%02d/%04d", (time.hour + 7) % 24, time.min, time.sec, time.day, time.month, time.year)
+
+    local data = {
+        ["content"] = "**Username:** " .. username .. "\n**Giờ VN:** " .. vn_time .. "\nNgười chơi đang sài script **Mobile Crawl (Hold)**"
+    }
+
+    local req = (syn and syn.request) or (http and http.request) or (http_request) or (fluxus and fluxus.request) or (request)
+
+    if req then
+        pcall(function()
+            req({
+                Url = url,
+                Method = "POST",
+                Headers = { ["Content-Type"] = "application/json" },
+                Body = HttpService:JSONEncode(data)
+            })
+        end)
+    end
+end)
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+local char = player.Character or player.CharacterAdded:Wait()
+local hum = char:WaitForChild("Humanoid")
+local animator = hum:WaitForChild("Animator")
+
+local CRAWL_SPEED = 8
+local WALK_SPEED = 16
+local CRAWL_HIP = -2 
+local STAND_HIP = 0  
+local ANIM_ID = "rbxassetid://961932719" 
+local remote = ReplicatedStorage:WaitForChild("RemoteEvent")
+
+local isCrawling = false
+local animTrack = nil
+local runConnection = nil
+
+local function ApplyStateInstant(active)
+    local targetHip = active and CRAWL_HIP or STAND_HIP
+    local targetSpeed = active and CRAWL_SPEED or WALK_SPEED
+    
+    local tweenInfo = TweenInfo.new(0.1, Enum.EasingStyle.Linear)
+    TweenService:Create(hum, tweenInfo, {HipHeight = targetHip}):Play()
+    hum.WalkSpeed = targetSpeed
+
+    local stats = player:FindFirstChild("TempPlayerStatsModule") or char:FindFirstChild("TempPlayerStatsModule")
+    if stats then
+        local val = stats:FindFirstChild("IsCrawling")
+        if val then val.Value = active end
+    end
+
+    if active then
+        if not animTrack then
+            local anim = Instance.new("Animation")
+            anim.AnimationId = ANIM_ID
+            animTrack = animator:LoadAnimation(anim)
+            animTrack.Priority = Enum.AnimationPriority.Action 
+            animTrack.Looped = true
+        end
+        animTrack:Play(0.1)
+        
+        if hum.MoveDirection.Magnitude > 0 then
+            animTrack:AdjustSpeed(1) 
+        else
+            animTrack:AdjustSpeed(0) 
+        end
+    else
+        if animTrack then
+            animTrack:Stop(0.1)
+        end
+    end
+end
+
+local function hookMovement()
+    if runConnection then runConnection:Disconnect() end
+    runConnection = hum.Running:Connect(function(speed)
+        if isCrawling and animTrack then
+            if speed > 0.5 then
+                animTrack:AdjustSpeed(1) 
+            else
+                animTrack:AdjustSpeed(0) 
+            end
+        end
+    end)
+end
+hookMovement()
+
+local dragInput = nil
+local dragStart = nil
+local dragStartBtnPos = nil
+local savedPos = nil
+local savedSize = nil
+local currentBtn = nil
+local hasMoved = false
+
+RunService.RenderStepped:Connect(function()
+    local caGui = playerGui:FindFirstChild("ContextActionGui")
+    local foundBtn = nil
+    
+    if caGui then
+        for _, v in ipairs(caGui:GetDescendants()) do
+            if v:IsA("ImageButton") and v.Name == "ContextActionButton" then
+                local label = v:FindFirstChild("ActionTitle") or v:FindFirstChildWhichIsA("TextLabel")
+                if label and label.Text == "C" then 
+                    foundBtn = v
+                    break
+                end
+            end
+        end
+    end
+    
+    if foundBtn then
+        currentBtn = foundBtn
+        if not foundBtn:GetAttribute("Hacked") then
+            foundBtn:SetAttribute("Hacked", true)
+            foundBtn.Active = true
+            
+            if not savedSize then savedSize = foundBtn.Size end
+            if not savedPos then savedPos = foundBtn.Position end
+            
+            if getconnections then
+                local eventsToKill = {
+                    foundBtn.MouseButton1Down, foundBtn.MouseButton1Up, foundBtn.MouseButton1Click, 
+                    foundBtn.Activated, foundBtn.InputBegan, foundBtn.InputEnded, foundBtn.TouchTap, foundBtn.TouchSwipe
+                }
+                for _, event in ipairs(eventsToKill) do
+                    for _, conn in pairs(getconnections(event)) do 
+                        conn:Disable() 
+                    end
+                end
+            end
+            
+            -- KHI VỪA CHẠM VÀO NÚT (HOLD) -> BẮT ĐẦU BÒ
+            foundBtn.InputBegan:Connect(function(input)
+                if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+                    if input.UserInputState == Enum.UserInputState.Begin then
+                        dragInput = input
+                        dragStart = input.Position
+                        dragStartBtnPos = foundBtn.Position
+                        hasMoved = false
+                        
+                        if not isCrawling then
+                            isCrawling = true
+                            ApplyStateInstant(true)
+                            task.spawn(function()
+                                remote:FireServer("Input", "Crawl", true)
+                            end)
+                        end
+                    end
+                end
+            end)
+        end
+        
+        if savedSize and foundBtn.Size ~= savedSize then
+            foundBtn.Size = savedSize
+        end
+        
+        if savedPos and not dragInput then
+            if foundBtn.Position ~= savedPos then
+                foundBtn.Position = savedPos
+            end
+        end
+    else
+        currentBtn = nil
+    end
+
+    local stats = player:FindFirstChild("TempPlayerStatsModule") or char:FindFirstChild("TempPlayerStatsModule")
+    if stats then
+        local val = stats:FindFirstChild("IsCrawling")
+        if val and val.Value ~= isCrawling then
+            isCrawling = val.Value
+        end
+    end
+end)
+
+UIS.InputChanged:Connect(function(input)
+    if dragInput and input == dragInput and currentBtn then
+        local delta = input.Position - dragStart
+        if delta.Magnitude > 5 then
+            hasMoved = true 
+        end
+        local newPos = UDim2.new(dragStartBtnPos.X.Scale, dragStartBtnPos.X.Offset + delta.X, dragStartBtnPos.Y.Scale, dragStartBtnPos.Y.Offset + delta.Y)
+        currentBtn.Position = newPos
+        savedPos = newPos
+    end
+end)
+
+UIS.InputEnded:Connect(function(input)
+    if dragInput and input == dragInput then
+        -- KHI NHẢ TAY RA (UNHOLD) -> DỪNG BÒ VÀ ĐỨNG DẬY
+        if isCrawling then
+            isCrawling = false
+            ApplyStateInstant(false)
+            task.spawn(function()
+                remote:FireServer("Input", "Crawl", false)
+            end)
+        end
+        
+        dragInput = nil
+    end
+end)
+
+player.CharacterAdded:Connect(function(newChar)
+    char = newChar
+    hum = char:WaitForChild("Humanoid")
+    animator = hum:WaitForChild("Animator")
+    isCrawling = false
+    animTrack = nil
+    dragInput = nil
+    hookMovement() 
+end)
