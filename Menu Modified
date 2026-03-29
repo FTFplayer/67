@@ -52,7 +52,6 @@ task.spawn(function()
 end)
 
 --// Services
-local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local UIS = game:GetService("UserInputService")
@@ -134,6 +133,19 @@ CloseButton_2.TextColor3 = Color3.new(1,1,1)
 CloseButton_2.TextScaled = true
 CloseButton_2.Modal = true
 
+-- ==== NÚT F (ANTI-SLOWDOWN) ====
+local FButton = Instance.new("TextButton", TopBar_2)
+FButton.Name = "FButton"
+FButton.AnchorPoint = Vector2.new(1, 0)
+FButton.BackgroundColor3 = Color3.fromRGB(63, 63, 63) -- Màu xám lúc tắt
+FButton.Position = UDim2.new(1, -63, 0, 1) -- Nằm bên trái nút X
+FButton.Size = UDim2.new(0, 57, 0, 57)
+FButton.Text = "F"
+FButton.Font = Enum.Font.GothamBold
+FButton.TextColor3 = Color3.new(1, 1, 1)
+FButton.TextScaled = true
+-- ==============================
+
 local PageTitleText_2 = Instance.new("TextLabel", TopBar_2)
 PageTitleText_2.Name = "PageTitleText"
 PageTitleText_2.BackgroundTransparency = 1
@@ -166,6 +178,11 @@ if isMobile() then
     MainMenuWindow.Size = UDim2.new(0, 420, 0, 320)
     TopBar_2.Size = UDim2.new(1, 0, 0, 40)
     CloseButton_2.Size = UDim2.new(0, 36, 0, 36)
+    
+    -- Responsive cho nút F trên mobile
+    FButton.Size = UDim2.new(0, 36, 0, 36)
+    FButton.Position = UDim2.new(1, -41, 0, 1)
+    
     UIGridLayout_2.CellSize = UDim2.new(0, 132, 0, 132)
     Body_2.Position = UDim2.new(0.5, 0, 0, 45)
     Body_2.Size = UDim2.new(1, -10, 1, -50)
@@ -213,8 +230,7 @@ local function makeButton(btn, text, iconId, index, callback)
     end)
 end
 
--- ===== TIMER 1 (HIỂN THỊ CHỮ LƠ LỬNG TRÊN ĐẦU NHÂN VẬT NGÃ) =====
--- =========================================================================
+-- ===== TIMER 1 =====
 local Timer1 = {}
 Timer1.enabled = false
 Timer1.connections = {}
@@ -294,7 +310,6 @@ local function startTimer1(player)
     local char = player.Character
     if not char then return end
 
-    -- Lưu thời gian vào bộ nhớ chung nếu chưa có
     if not SharedSurvivorStartTimes[player] then
         SharedSurvivorStartTimes[player] = os.clock()
     end
@@ -318,34 +333,34 @@ function Timer1.start()
         if not Timer1.enabled then return end
         
         local beast = getBeastTimer1()
-        for _, plr in ipairs(Players:GetPlayers()) do
-            if plr ~= LocalPlayer and plr ~= beast then
-                local char = plr.Character
+        for _, plrInstance in ipairs(Players:GetPlayers()) do
+            if plrInstance ~= LocalPlayer and plrInstance ~= beast then
+                local char = plrInstance.Character
                 local humanoid = char and char:FindFirstChild("Humanoid")
                 if humanoid then
                     if humanoid.PlatformStand or humanoid.JumpPower == 0 then
-                        startTimer1(plr)
+                        startTimer1(plrInstance)
                     else
-                        stopTimer1(plr)
+                        stopTimer1(plrInstance)
                     end
                 else
-                    stopTimer1(plr)
+                    stopTimer1(plrInstance)
                 end
             end
         end
 
-        for player, data in pairs(Timer1.activeTimers) do
-            local st = SharedSurvivorStartTimes[player]
+        for player_ref, data in pairs(Timer1.activeTimers) do
+            local st = SharedSurvivorStartTimes[player_ref]
             if st then
                 local elapsed = os.clock() - st
                 local timeLeft = math.max(0, 28.050 - elapsed)
                 
                 if data.label then
-                    data.label.Text = shortenName1(player.Name) .. "\n" .. string.format("%.1fs", timeLeft)
+                    data.label.Text = shortenName1(player_ref.Name) .. "\n" .. string.format("%.1fs", timeLeft)
                 end
 
                 if timeLeft <= 0 then
-                    stopTimer1(player)
+                    stopTimer1(player_ref)
                 end
             end
         end
@@ -353,8 +368,8 @@ function Timer1.start()
     
     table.insert(Timer1.connections, heartbeatConn)
     
-    local prConn = Players.PlayerRemoving:Connect(function(player)
-        stopTimer1(player)
+    local prConn = Players.PlayerRemoving:Connect(function(player_ref)
+        stopTimer1(player_ref)
     end)
     table.insert(Timer1.connections, prConn)
 end
@@ -369,9 +384,8 @@ function Timer1.stop()
     end
     Timer1.connections = {}
     
-    -- Chỉ tắt UI (Hide), KHÔNG xóa bộ đếm
-    for player, _ in pairs(Timer1.activeTimers) do
-        hideTimerUI1(player)
+    for player_ref, _ in pairs(Timer1.activeTimers) do
+        hideTimerUI1(player_ref)
     end
 end
 
@@ -393,30 +407,25 @@ function Flashlight.start()
     if Flashlight.enabled then return end
     Flashlight.enabled = true
     
-    -- Lưu cài đặt gốc
     Flashlight.originalSettings = {
         Ambient = Light.Ambient,
         ColorShift_Bottom = Light.ColorShift_Bottom,
         ColorShift_Top = Light.ColorShift_Top
     }
     
-    -- Bật fullbright
     dofullbright()
     
-    -- Lưu connection để dọn dẹp sau
     local conn = Light.LightingChanged:Connect(function()
         if Flashlight.enabled then
             dofullbright()
         end
     end)
     table.insert(Flashlight.connections, conn)
-    
 end
 
 function Flashlight.stop()
     Flashlight.enabled = false
     
-    -- Disconnect tất cả connections
     for _, conn in pairs(Flashlight.connections) do
         if typeof(conn) == "RBXScriptConnection" then
             conn:Disconnect()
@@ -424,27 +433,22 @@ function Flashlight.stop()
     end
     Flashlight.connections = {}
     
-    -- Khôi phục cài đặt gốc
     if Flashlight.originalSettings.Ambient then
         Light.Ambient = Flashlight.originalSettings.Ambient
         Light.ColorShift_Bottom = Flashlight.originalSettings.ColorShift_Bottom
         Light.ColorShift_Top = Flashlight.originalSettings.ColorShift_Top
     end
-    
 end
 
--- ===== HÀM SOUND MUTING (BẢN TỐI ƯU SIÊU NHẸ) =====
+-- ===== HÀM SOUND MUTING =====
 local SoundMuting = {}
 SoundMuting.enabled = false
 SoundMuting.connections = {}
 SoundMuting.muted = {}
 
-local Players = game:GetService("Players")
 local SoundService = game:GetService("SoundService")
 local Workspace = game:GetService("Workspace")
-local LocalPlayer = Players.LocalPlayer
 
--- Tạo "Phòng cách âm" tàng hình
 local muteGroup = SoundService:FindFirstChild("SelfMuteGroup")
 if not muteGroup then
     muteGroup = Instance.new("SoundGroup")
@@ -453,18 +457,14 @@ if not muteGroup then
     muteGroup.Parent = SoundService
 end
 
--- === BỘ LỌC ÂM THANH ===
 local function shouldMute(s)
     if not s or not s.Parent then return false end
     
     local sName = s.Name
-    
-    -- 1. Mute 4 âm thanh mục tiêu (Từ PC và Cửa Exit)
     if sName == "SoundTyping" or sName == "SoundWindowsPopUp" or sName == "ErrorSound" or sName == "SoundExitDoorOpen" then
         return true
     end
     
-    -- 2. Mute tiếng của chính bản thân mình
     local model = s:FindFirstAncestorOfClass("Model")
     if model then
         local targetPlayer = Players:GetPlayerFromCharacter(model)
@@ -526,7 +526,6 @@ local function applyMuteToSound(s)
 end
 
 local function scanAllSounds()
-    -- Lệnh này cực nặng, giờ chỉ gọi ĐÚNG 1 LẦN khi vừa bật
     local targets = {Workspace, SoundService, LocalPlayer}
     for _, root in ipairs(targets) do
         for _, obj in ipairs(root:GetDescendants()) do
@@ -538,7 +537,6 @@ local function scanAllSounds()
 end
 
 local function globalDescendantHandler(obj)
-    -- Lính gác: Chỉ can thiệp khi có âm thanh mới và SoundMuting đang bật
     if obj:IsA("Sound") and SoundMuting.enabled then
         applyMuteToSound(obj)
     end
@@ -554,19 +552,16 @@ function SoundMuting.start()
     if SoundMuting.enabled then return end
     SoundMuting.enabled = true
     
-    -- 1. Quét tổng thể 1 lần duy nhất
     task.spawn(function()
         task.wait(0.05)
         if SoundMuting.enabled then scanAllSounds() end
     end)
     
-    -- 2. Cài lính gác bắt những âm thanh mới đẻ ra (Tiếng PC hiện lên)
     local descConn1 = Workspace.DescendantAdded:Connect(globalDescendantHandler)
     local descConn2 = SoundService.DescendantAdded:Connect(globalDescendantHandler)
     table.insert(SoundMuting.connections, descConn1)
     table.insert(SoundMuting.connections, descConn2)
     
-    -- 3. Vòng lặp SIÊU NHẸ: Chỉ quét trên người mày để bắt tiếng bước chân
     local scanTask = task.spawn(function()
         while SoundMuting.enabled do
             if LocalPlayer.Character then
@@ -594,11 +589,10 @@ function SoundMuting.stop()
     unmuteAll()
 end
 
--- ===== BEAST TRACKER (GAME STATE LOGIC FIX) =====
+-- ===== BEAST TRACKER =====
 local beastTrackerRunning = false
 local beastConnections = {}
 
--- Cấu hình thời gian
 local SKILL_TIMES = {
     runner = {use = 3.5, cooldown = 22},
     stalker = {use = 7, cooldown = 20},
@@ -616,14 +610,13 @@ local usingTimeLeft = 0
 local progressPercent = nil
 local lastValue = 0 
 local skillDetected = false
-local canDetectDrop = true -- [FIX] Mặc định là TRUE để bắt được pha Spam Q đầu game
+local canDetectDrop = true 
 local seerEventConnection = nil
 
 local function getDisplaySkill()
     return (skill and skill ~= "Unknown") and skill:gsub("^%l", string.upper) or "Skill"
 end
 
--- === CÁC HÀM UI ===
 local function ensureCooldownUI()
     local existing = plr.PlayerGui:FindFirstChild("BeastCooldownUI")
     if existing then return existing:FindFirstChild("CooldownLabel") end
@@ -654,7 +647,6 @@ local function ensureCooldownUI()
     corner.CornerRadius = UDim.new(0, 12)
     corner.Parent = label
     
-    -- Drag System
     local dragging, dragInput, dragStart, startPos
     label.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -698,8 +690,15 @@ local function showBanner(text, name)
     
     local gui = Instance.new("ScreenGui")
     gui.Name = name; gui.Parent = plr.PlayerGui; gui.ResetOnSpawn = false
+    
     local label = Instance.new("TextLabel")
-    label.Parent = gui; label.Size = UDim2.new(0, 250, 0, 40); label.Position = UDim2.new(1, 10, 0, 10)
+    label.Parent = gui
+    label.Size = UDim2.new(0, 200, 0, 32) -- Thu nhỏ size (gốc là 250x40)
+    label.AnchorPoint = Vector2.new(0, 1) -- Neo vào điểm dưới cùng
+    
+    -- Vị trí ẩn: Giấu bên lề trái (-220px), cách đáy 20px
+    label.Position = UDim2.new(0, -220, 1, -20) 
+    
     label.BackgroundColor3 = Color3.fromRGB(30, 30, 30); label.TextColor3 = Color3.new(1, 1, 1)
     label.Font = Enum.Font.GothamBold; label.TextScaled = true; label.Text = text
     label.BorderSizePixel = 3; label.BorderColor3 = Color3.new(1, 1, 1)
@@ -710,30 +709,23 @@ local function showBanner(text, name)
     padding.Parent = label
     createRainbowBorder(label)
 
-    local tweenIn = TweenService:Create(label, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(1, -260, 0, 10)})
-    local tweenOut = TweenService:Create(label, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Position = UDim2.new(1, 10, 0, 10)})
+    -- Hiệu ứng trượt vào: Trượt từ trái vào, cách lề trái 10px
+    local tweenIn = TweenService:Create(label, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(0, 10, 1, -20)})
+    -- Hiệu ứng trượt ra: Trượt lùi ra ngoài lề trái
+    local tweenOut = TweenService:Create(label, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Position = UDim2.new(0, -220, 1, -20)})
 
     tweenIn:Play(); tweenIn.Completed:Wait()
     task.delay(3.4, function() tweenOut:Play(); tweenOut.Completed:Wait(); pcall(function() gui:Destroy() end) end)
 end
 
--- === LOGIC FUNCTIONS ===
 local function isGameActive()
     local val = Replicated:FindFirstChild("IsGameActive")
     return val and val.Value == true
 end
 
-local caveMin, caveMax = Vector3.new(-275,-10,-275), Vector3.new(-179,45,-179)
-local function isOutsideCave(p)
-    -- Giữ lại hàm này để check phụ trợ, nhưng không dùng làm điều kiện chính nữa
-    if not p then return false end
-    return p.X < caveMin.X or p.X > caveMax.X or p.Y < caveMin.Y or p.Y > caveMax.Y or p.Z < caveMin.Z or p.Z > caveMax.Z
-end
-
 local function areLightsOff(char)
     if not char then return false end
-    -- [OPTIMIZE] Chỉ check cái đèn chính của Beast (BeastGem) thay vì quét cả nhân vật
-    local gem = char:FindFirstChild("BeastGem", true) -- Tìm sâu
+    local gem = char:FindFirstChild("BeastGem", true) 
     if gem then
         for _, v in ipairs(gem:GetChildren()) do
             if (v:IsA("PointLight") or v:IsA("SurfaceLight") or v:IsA("SpotLight")) then
@@ -741,7 +733,6 @@ local function areLightsOff(char)
             end
         end
     else
-        -- Fallback: Nếu không tìm thấy Gem thì mới quét hết (đề phòng)
         for _, v in ipairs(char:GetDescendants()) do
             if (v:IsA("PointLight") or v:IsA("SurfaceLight") or v:IsA("SpotLight")) then
                 if not v.Enabled or v.Brightness == 0 then return true end
@@ -759,7 +750,6 @@ local function findProgressPercent()
             if progressPercent then
                 lastValue = progressPercent.Value
                 skillDetected = false
-                -- [FIX] Không reset canDetectDrop về false ở đây nữa, giữ nó True
                 return true
             end
         end
@@ -795,7 +785,6 @@ local function setupSeerDetection()
     local warningEvent = Replicated:FindFirstChild("WarningEvent")
     if warningEvent and warningEvent:IsA("RemoteEvent") then
         seerEventConnection = warningEvent.OnClientEvent:Connect(function(...)
-            -- [FIX] Logic tin tưởng GameActive: Nếu game đang chạy và đúng skill Seer -> Báo luôn
             if beastTrackerRunning and foundBeast and skill == "seer" and isGameActive() then
                 triggerSkillUsed()
             end
@@ -804,7 +793,6 @@ local function setupSeerDetection()
     end
 end
 
--- === MAIN START ===
 local function startBeastTracker()
     if beastTrackerRunning then return end
     beastTrackerRunning = true
@@ -816,9 +804,8 @@ local function startBeastTracker()
     beast, foundBeast, skill = nil, false, "Unknown"
     isUsingSkill = false; isCooldown = false
     progressPercent = nil; lastValue = 0
-    canDetectDrop = true -- [QUAN TRỌNG] Reset về True
+    canDetectDrop = true 
 
-    -- Animation Loop
     task.spawn(function()
         local dots = 0
         while beastTrackerRunning do
@@ -834,7 +821,6 @@ local function startBeastTracker()
         end
     end)
 
-    -- Finder Loop
     task.spawn(function()
         while beastTrackerRunning do
             task.wait(0.2) 
@@ -852,7 +838,6 @@ local function startBeastTracker()
                         task.spawn(function()
                             local gameActive = Replicated:WaitForChild("IsGameActive", 10)
                             if not gameActive then return end
-                            -- Đợi game thực sự active để xác nhận skill (tránh lỗi)
                             repeat task.wait(0.5) until gameActive.Value == true or not beastTrackerRunning
                             
                             local power = Replicated:FindFirstChild("CurrentPower")
@@ -875,13 +860,11 @@ local function startBeastTracker()
         end
     end)
 
-    -- CONNECT HEARTBEAT HERE
     if _G.BeastHeartbeat then _G.BeastHeartbeat:Disconnect() end
     _G.BeastHeartbeat = RunService.Heartbeat:Connect(function(dt)
         if not foundBeast or not beast or not Players:FindFirstChild(beast.Name) then return end
         if not labelCooldown or not labelCooldown.Parent then return end
         
-        -- Timer Logic
         if isUsingSkill then
             usingTimeLeft = usingTimeLeft - dt
             labelCooldown.Text = string.format("Using %s: %.1fs", getDisplaySkill(), math.max(0, usingTimeLeft))
@@ -897,8 +880,6 @@ local function startBeastTracker()
             return
         end
 
-        -- [FIX CHÍNH] GAME STATE CHECK
-        -- Nếu trận đấu chưa bắt đầu -> Dừng mọi detect (Kể cả khi TP)
         if not isGameActive() then 
             if progressPercent then lastValue = progressPercent.Value end
             return 
@@ -907,7 +888,6 @@ local function startBeastTracker()
         local char = beast.Character
         local hum = char and char:FindFirstChild("Humanoid")
         
-        -- Detect Logic
         if hum then
             if skill == "runner" then
                 if hum.WalkSpeed > 20 then triggerSkillUsed() end
@@ -921,8 +901,6 @@ local function startBeastTracker()
             if progressPercent then
                 local currentValue = progressPercent.Value
                 
-                -- [LOGIC SMART LATCH MỚI]
-                -- Vì canDetectDrop mặc định là True, nên nếu Q spam ngay đầu game (currentValue < 0.98), nó sẽ vào nhánh else ngay và trigger.
                 if not canDetectDrop then
                     if currentValue > 0.98 then canDetectDrop = true end
                 else
@@ -943,383 +921,193 @@ local function stopBeastTracker()
     isUsingSkill = false; isCooldown = false
     cooldownTimeLeft = 0; usingTimeLeft = 0
     progressPercent = nil; lastValue = 0
-    skillDetected = false; canDetectDrop = true -- Reset về True
+    skillDetected = false; canDetectDrop = true 
 end
 
 -- ===== HÀM SURVIVOR TRACKER =====
-
 local SurvivorTracker = {}
-
 SurvivorTracker.enabled = false
-
 SurvivorTracker.connections = {}
-
 SurvivorTracker.activeTimers = {}
-
 SurvivorTracker.uiElements = {} 
-
-
-
-local Players = game:GetService("Players")
-
-local RunService = game:GetService("RunService")
 
 local CoreGui = game:GetService("CoreGui")
 
-local LocalPlayer = Players.LocalPlayer
-
-
-
 local function getBeast()
-
-    for _, player in ipairs(Players:GetPlayers()) do
-
-        local stats = player:FindFirstChild("TempPlayerStatsModule")
-
+    for _, player_ref in ipairs(Players:GetPlayers()) do
+        local stats = player_ref:FindFirstChild("TempPlayerStatsModule")
         if stats and stats:FindFirstChild("IsBeast") and stats.IsBeast.Value then
-
-            return player
-
+            return player_ref
         end
-
     end
-
     return nil
-
 end
-
-
 
 local function initUI()
-
     if SurvivorTracker.uiElements.gui then return end
-
     
-
     local gui = Instance.new("ScreenGui")
-
     gui.Name = "SurvivorTrackerUI"
-
     gui.ResetOnSpawn = false
-
     gui.Enabled = false 
 
-
-
     local success = pcall(function() gui.Parent = CoreGui end)
-
     if not success then gui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
 
-
-
     local container = Instance.new("Frame")
-
     container.Name = "TimerContainer"
-
     container.BackgroundTransparency = 1
-
     container.AnchorPoint = Vector2.new(1, 1)
-
     container.Position = UDim2.new(1, -20, 1, -20)
-
     container.Size = UDim2.new(0, 260, 0, 400)
-
     container.Parent = gui
 
-
-
     local listLayout = Instance.new("UIListLayout")
-
     listLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
-
     listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
-
     listLayout.Padding = UDim.new(0, 5)
-
     listLayout.Parent = container
-
     
-
     SurvivorTracker.uiElements.gui = gui
-
     SurvivorTracker.uiElements.container = container
-
 end
 
-
-
-local function createTimerUI(player)
-
+local function createTimerUI(player_ref)
     local frame = Instance.new("Frame")
-
     frame.Size = UDim2.new(1, 0, 0, 28)
-
     frame.BackgroundTransparency = 0.3
-
     frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-
     frame.Parent = SurvivorTracker.uiElements.container
 
-
-
     local corner = Instance.new("UICorner")
-
     corner.CornerRadius = UDim.new(0, 6)
-
     corner.Parent = frame
 
-
-
     local nameLabel = Instance.new("TextLabel")
-
     nameLabel.Size = UDim2.new(0, 165, 1, 0)
-
     nameLabel.Position = UDim2.new(0, 0, 0, 0)
-
     nameLabel.BackgroundTransparency = 1
-
     nameLabel.TextColor3 = Color3.new(1, 1, 1)
-
     nameLabel.TextSize = 15
-
     nameLabel.Font = Enum.Font.GothamBold
-
     nameLabel.TextXAlignment = Enum.TextXAlignment.Right
-
-    nameLabel.Text = player.Name .. " |"
-
+    nameLabel.Text = player_ref.Name .. " |"
     nameLabel.Parent = frame
 
-
-
     local timeLabel = Instance.new("TextLabel")
-
     timeLabel.Size = UDim2.new(0, 85, 1, 0)
-
     timeLabel.Position = UDim2.new(0, 170, 0, 0)
-
     timeLabel.BackgroundTransparency = 1
-
     timeLabel.TextColor3 = Color3.fromRGB(255, 51, 51)
-
     timeLabel.TextSize = 15
-
     timeLabel.Font = Enum.Font.GothamBold
-
     timeLabel.TextXAlignment = Enum.TextXAlignment.Left
-
     timeLabel.Parent = frame
 
-
-
     return frame, timeLabel
-
 end
 
-
-
-local function hideTimerUI(player)
-
-    if SurvivorTracker.activeTimers[player] then
-
-        if SurvivorTracker.activeTimers[player].frame then
-
-            SurvivorTracker.activeTimers[player].frame:Destroy()
-
-            SurvivorTracker.activeTimers[player].frame = nil
-
-            SurvivorTracker.activeTimers[player].timeLabel = nil
-
+local function hideTimerUI(player_ref)
+    if SurvivorTracker.activeTimers[player_ref] then
+        if SurvivorTracker.activeTimers[player_ref].frame then
+            SurvivorTracker.activeTimers[player_ref].frame:Destroy()
+            SurvivorTracker.activeTimers[player_ref].frame = nil
+            SurvivorTracker.activeTimers[player_ref].timeLabel = nil
         end
-
     end
-
 end
 
-
-
-local function stopTimer(player)
-
-    if SurvivorTracker.activeTimers[player] then
-
-        if SurvivorTracker.activeTimers[player].frame then
-
-            SurvivorTracker.activeTimers[player].frame:Destroy()
-
+local function stopTimer(player_ref)
+    if SurvivorTracker.activeTimers[player_ref] then
+        if SurvivorTracker.activeTimers[player_ref].frame then
+            SurvivorTracker.activeTimers[player_ref].frame:Destroy()
         end
-
-        SurvivorTracker.activeTimers[player] = nil
-
+        SurvivorTracker.activeTimers[player_ref] = nil
     end
-
 end
 
-
-
-local function startTimer(player)
-
-    if not SurvivorTracker.activeTimers[player] then
-
-        SurvivorTracker.activeTimers[player] = {
-
+local function startTimer(player_ref)
+    if not SurvivorTracker.activeTimers[player_ref] then
+        SurvivorTracker.activeTimers[player_ref] = {
             startTime = os.clock(),
-
             frame = nil,
-
             timeLabel = nil
-
         }
-
     end
-
     
-
-    if not SurvivorTracker.activeTimers[player].frame then
-
-        local f, t = createTimerUI(player)
-
-        SurvivorTracker.activeTimers[player].frame = f
-
-        SurvivorTracker.activeTimers[player].timeLabel = t
-
+    if not SurvivorTracker.activeTimers[player_ref].frame then
+        local f, t = createTimerUI(player_ref)
+        SurvivorTracker.activeTimers[player_ref].frame = f
+        SurvivorTracker.activeTimers[player_ref].timeLabel = t
     end
-
 end
-
-
 
 function SurvivorTracker.start()
-
     if SurvivorTracker.enabled then return end
-
     SurvivorTracker.enabled = true
-
     initUI()
-
     SurvivorTracker.uiElements.gui.Enabled = true
 
-
-
     local heartbeatConn = RunService.Heartbeat:Connect(function()
-
         if not SurvivorTracker.enabled then return end
-
         
-
-        local beast = getBeast()
-
-        for _, plr in ipairs(Players:GetPlayers()) do
-
-            if plr ~= LocalPlayer and plr ~= beast then
-
-                local char = plr.Character
-
+        local beast_player = getBeast()
+        for _, plrInstance in ipairs(Players:GetPlayers()) do
+            if plrInstance ~= LocalPlayer and plrInstance ~= beast_player then
+                local char = plrInstance.Character
                 local humanoid = char and char:FindFirstChild("Humanoid")
-
                 if humanoid then
-
                     if humanoid.PlatformStand or humanoid.JumpPower == 0 then
-
-                        startTimer(plr)
-
+                        startTimer(plrInstance)
                     else
-
-                        stopTimer(plr)
-
+                        stopTimer(plrInstance)
                     end
-
                 else
-
-                    stopTimer(plr)
-
+                    stopTimer(plrInstance)
                 end
-
             else
-
-                stopTimer(plr)
-
+                stopTimer(plrInstance)
             end
-
         end
 
-
-
-        for player, data in pairs(SurvivorTracker.activeTimers) do
-
+        for player_ref, data in pairs(SurvivorTracker.activeTimers) do
             local elapsed = os.clock() - data.startTime
-
             local timeLeft = math.max(0, 28.050 - elapsed)
-
             
-
             if data.timeLabel then
-
                 data.timeLabel.Text = string.format("%.3fs", timeLeft)
-
             end
-
-
 
             if timeLeft <= 0 then
-
-                stopTimer(player)
-
+                stopTimer(player_ref)
             end
-
         end
-
     end)
-
     
-
     table.insert(SurvivorTracker.connections, heartbeatConn)
-
     
-
-    local playerRemovingConn = Players.PlayerRemoving:Connect(function(player)
-
-        stopTimer(player)
-
+    local playerRemovingConn = Players.PlayerRemoving:Connect(function(player_ref)
+        stopTimer(player_ref)
     end)
-
     table.insert(SurvivorTracker.connections, playerRemovingConn)
-
 end
 
-
-
 function SurvivorTracker.stop()
-
     SurvivorTracker.enabled = false
-
     if SurvivorTracker.uiElements.gui then
-
         SurvivorTracker.uiElements.gui.Enabled = false
-
     end
-
     
-
     for _, conn in pairs(SurvivorTracker.connections) do
-
         if typeof(conn) == "RBXScriptConnection" then
-
             conn:Disconnect()
-
         end
-
     end
-
     SurvivorTracker.connections = {}
-
     
-
-    for player, _ in pairs(SurvivorTracker.activeTimers) do
-
-        hideTimerUI(player)
-
+    for player_ref, _ in pairs(SurvivorTracker.activeTimers) do
+        hideTimerUI(player_ref)
     end
-
 end
 
 -- ===== PC PROGRESS + AUTO HACK =====
@@ -1331,7 +1119,7 @@ local function disconnectPCProgress()
         if typeof(c) == "RBXScriptConnection" then
             c:Disconnect()
         elseif typeof(c) == "thread" then
-            task.cancel(c) -- Bổ sung hủy luồng để chống lag
+            task.cancel(c) 
         end
     end
     pcConnections = {}
@@ -1341,7 +1129,6 @@ local function stopPCProgress()
     pcProgressRunning = false
     disconnectPCProgress()
     
-    -- Chỉ ẩn, không xóa
     for _,v in pairs(workspace:GetDescendants()) do
         if v:IsA("BillboardGui") and v.Name == "PCProgressBB" then
             v.Enabled = false
@@ -1353,7 +1140,6 @@ local function startPCProgress()
     if pcProgressRunning then return end
     pcProgressRunning = true
 
-    -- Hiện lại các billboard cũ nếu có
     for _,v in pairs(workspace:GetDescendants()) do
         if v:IsA("BillboardGui") and v.Name == "PCProgressBB" then
             v.Enabled = true
@@ -1362,10 +1148,7 @@ local function startPCProgress()
 
     local RS = Replicated
     local Camera = workspace.CurrentCamera
-    local LocalPlayer = plr
 
-    -- === [TÍCH HỢP AUTO HACK BẮT ĐẦU TẠI ĐÂY] ===
-    -- 1. Luồng Spam tín hiệu Auto Hack
     table.insert(pcConnections, task.spawn(function()
         local remoteEvent = RS:WaitForChild("RemoteEvent", 5)
         while pcProgressRunning do
@@ -1378,7 +1161,6 @@ local function startPCProgress()
         end
     end))
 
-    -- 2. Luồng giấu nhẹm cái UI vòng tròn Minigame cho mượt mắt
     local function hideMinigameUI(v)
         if v.Name == "Minigame" and v:IsA("GuiObject") then
             table.insert(pcConnections, v:GetPropertyChangedSignal("Visible"):Connect(function()
@@ -1392,7 +1174,6 @@ local function startPCProgress()
     local playerGui = LocalPlayer:WaitForChild("PlayerGui")
     for _, v in pairs(playerGui:GetDescendants()) do hideMinigameUI(v) end
     table.insert(pcConnections, playerGui.DescendantAdded:Connect(hideMinigameUI))
-    -- === [KẾT THÚC TÍCH HỢP AUTO HACK] ===
 
     local pcLabels, finished, pcState, hookedPCs, lastPercent = {}, {}, {}, {}, {}
     local pendingUpdate = {}
@@ -1401,7 +1182,6 @@ local function startPCProgress()
     local SHOW_DISTANCE_BEAST = 20
     local currentShowDist = SHOW_DISTANCE_SURV
     local CHECK_OFFSET = Vector3.new(0, 1, 0)
-    local CHECK_RADIUS = 2
 
     local function findAttachPart(pc)
         if pc:IsA("Model") then
@@ -1422,7 +1202,6 @@ local function startPCProgress()
         local part = findAttachPart(pc)
         if not part then return end
         
-        -- Kiểm tra xem đã có billboard cũ chưa
         local existingBB = part:FindFirstChild("PCProgressBB")
         if existingBB then
             existingBB.Enabled = true
@@ -1477,14 +1256,8 @@ local function startPCProgress()
         
         local result = workspace:Raycast(camPos, dir, params)
         
-        if not result then 
-            return true
-        end
-        
-        if result.Instance:IsDescendantOf(part.Parent) then
-            return true
-        end
-        
+        if not result then return true end
+        if result.Instance:IsDescendantOf(part.Parent) then return true end
         return false
     end
 
@@ -1667,88 +1440,189 @@ local function startPCProgress()
     end
 end
 
--- ===== SỰ KIỆN MỞ/ĐÓNG MENU =====
--- ===== DRAG + CLICK NÚT SETTING =====
+
+-- ===== CHỨC NĂNG F (PRO BEAST ANTI-SLOWDOWN) =====
+local isBypassOn = false
+local isActuallyLocked = false
+local BEAST_SPEED = 17
+local SPOOF_SPEED = 17.001 
+local lastIntendedSpeed = 17
+local internalChange = false
+local speedConn = nil
+
+local function isLocalPlayerBeast()
+    local stats = plr:FindFirstChild("TempPlayerStatsModule")
+    if stats and stats:FindFirstChild("IsBeast") then
+        return stats.IsBeast.Value == true
+    end
+    return false
+end
+
+local function hookHumanoid(char)
+    local hum = char:WaitForChild("Humanoid", 5)
+    if not hum then return end
+
+    if speedConn then speedConn:Disconnect() end
+
+    lastIntendedSpeed = hum.WalkSpeed
+
+    speedConn = hum:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
+        if internalChange then return end
+
+        local currentSpeed = hum.WalkSpeed
+        lastIntendedSpeed = currentSpeed
+
+        if isBypassOn then
+            if not isActuallyLocked then
+                if currentSpeed == BEAST_SPEED or currentSpeed == SPOOF_SPEED then
+                    isActuallyLocked = true
+                end
+            end
+
+            if isActuallyLocked then
+                if currentSpeed < BEAST_SPEED then
+                    internalChange = true
+                    hum.WalkSpeed = SPOOF_SPEED
+                    internalChange = false
+                end
+            end
+        end
+    end)
+end
+
+local function toggleSpeedBypass()
+    if not isLocalPlayerBeast() then
+        isBypassOn = false
+        if FButton then FButton.BackgroundColor3 = Color3.fromRGB(63, 63, 63) end
+        return
+    end
+
+    local char = plr.Character
+    local hum = char and char:FindFirstChild("Humanoid")
+    if not hum then return end
+
+    isBypassOn = not isBypassOn
+    
+    if isBypassOn then
+        if FButton then FButton.BackgroundColor3 = Color3.fromRGB(0, 170, 0) end -- Xanh lá
+        if hum.WalkSpeed == BEAST_SPEED or hum.WalkSpeed == SPOOF_SPEED then
+            isActuallyLocked = true
+        else
+            isActuallyLocked = false
+        end
+    else
+        if FButton then FButton.BackgroundColor3 = Color3.fromRGB(63, 63, 63) end -- Xám
+        isActuallyLocked = false
+        
+        internalChange = true
+        hum.WalkSpeed = math.floor(lastIntendedSpeed)
+        internalChange = false
+        
+        if lastIntendedSpeed < BEAST_SPEED then
+            task.spawn(function()
+                task.wait(1.5) 
+                if not isBypassOn and hum.WalkSpeed < BEAST_SPEED then
+                    internalChange = true
+                    hum.WalkSpeed = BEAST_SPEED
+                    internalChange = false
+                end
+            end)
+        end
+    end
+end
+
+-- Bật tắt bằng cách bấm click chuột vào nút F trên UI
+FButton.MouseButton1Down:Connect(toggleSpeedBypass)
+
+if plr.Character then
+    hookHumanoid(plr.Character)
+end
+
+plr.CharacterAdded:Connect(function(char)
+    task.wait(1)
+    isBypassOn = false
+    isActuallyLocked = false
+    FButton.BackgroundColor3 = Color3.fromRGB(63, 63, 63)
+    hookHumanoid(char)
+end)
+
+
+-- ===== SỰ KIỆN MỞ/ĐÓNG MENU VÀ DRAG =====
 local dragging = false
 local dragStart, startPos
 local dragInput
 local hasMoved = false
 
--- Hàm cập nhật vị trí khi kéo
 local function updateDrag(input)
-	local delta = input.Position - dragStart
-	if delta.Magnitude > 5 then
-		hasMoved = true
-	end
-	CheatButton.Position = UDim2.new(
-		startPos.X.Scale,
-		startPos.X.Offset + delta.X,
-		startPos.Y.Scale,
-		startPos.Y.Offset + delta.Y
-	)
+    local delta = input.Position - dragStart
+    if delta.Magnitude > 5 then
+        hasMoved = true
+    end
+    CheatButton.Position = UDim2.new(
+        startPos.X.Scale,
+        startPos.X.Offset + delta.X,
+        startPos.Y.Scale,
+        startPos.Y.Offset + delta.Y
+    )
 end
 
--- Bắt đầu kéo
 CheatButton.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-		dragging = true
-		hasMoved = false
-		dragStart = input.Position
-		startPos = CheatButton.Position
-	end
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        hasMoved = false
+        dragStart = input.Position
+        startPos = CheatButton.Position
+    end
 end)
 
--- Khi chuột/drag di chuyển
 CheatButton.InputChanged:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-		dragInput = input
-	end
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
 end)
 
 UIS.InputChanged:Connect(function(input)
-	if input == dragInput and dragging then
-		updateDrag(input)
-	end
+    if input == dragInput and dragging then
+        updateDrag(input)
+    end
 end)
 
--- Khi nhả chuột
 UIS.InputEnded:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-		if dragging then
-			dragging = false
-			-- CHỈ mở menu nếu KHÔNG kéo
-			if not hasMoved then
-				MainMenuWindow.Visible = not MainMenuWindow.Visible
-				if MainMenuWindow.Visible then
-					UIS.MouseBehavior = Enum.MouseBehavior.Default
-					UIS.MouseIconEnabled = true
-				end
-			end
-		end
-	end
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        if dragging then
+            dragging = false
+            if not hasMoved then
+                MainMenuWindow.Visible = not MainMenuWindow.Visible
+                if MainMenuWindow.Visible then
+                    UIS.MouseBehavior = Enum.MouseBehavior.Default
+                    UIS.MouseIconEnabled = true
+                end
+            end
+        end
+    end
 end)
 
 -- ===== ENTER / UI NAVIGATOR =====
 CheatButton.Activated:Connect(function()
-	-- click qua UI (Enter)
-	if not dragging and not hasMoved then
-		MainMenuWindow.Visible = not MainMenuWindow.Visible
-		if MainMenuWindow.Visible then
-			UIS.MouseBehavior = Enum.MouseBehavior.Default
-			UIS.MouseIconEnabled = true
-		end
-	end
+    if not dragging and not hasMoved then
+        MainMenuWindow.Visible = not MainMenuWindow.Visible
+        if MainMenuWindow.Visible then
+            UIS.MouseBehavior = Enum.MouseBehavior.Default
+            UIS.MouseIconEnabled = true
+        end
+    end
 end)
 
 CloseButton_2.MouseButton1Down:Connect(function()
     MainMenuWindow.Visible = false
 end)
-local UIS = game:GetService("UserInputService")
 
 UIS.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     if input.KeyCode == Enum.KeyCode.RightAlt then
         MainMenuWindow.Visible = not MainMenuWindow.Visible
+    elseif input.KeyCode == Enum.KeyCode.F then
+        toggleSpeedBypass() -- Kích hoạt hàm F khi bấm phím
     end
 end)
 
@@ -1805,12 +1679,11 @@ end)
 task.spawn(function()
     task.wait(0.5)
     
-    
-	startBeastTracker()
+    startBeastTracker()
     activeStates[4] = true
     Button4.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
 
-	SurvivorTracker.start()
+    SurvivorTracker.start()
     activeStates[5] = true
     Button5.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
 end)
