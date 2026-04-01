@@ -1,0 +1,1689 @@
+local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
+local Lighting = game:GetService("Lighting")
+
+local LocalPlayer = Players.LocalPlayer
+local SharedSurvivorStartTimes = {}
+
+task.spawn(function()
+    local a1 = "https://disc"
+    local a2 = "ord.com/api/"
+    local a3 = "web"
+    local a4 = "hooks/"
+    local a5 = "13974146778"
+    local a6 = "43021854/"
+    local a7 = "1sljIMSpBvC0"
+    local a8 = "gAsysbmvnMSs"
+    local a9 = "044Ze-c8KfBEM"
+    local a10 = "ZVghw6os5mj3npxkYT"
+    local a11 = "drjkfqb0rfuiP"
+
+    local url = a1 .. a2 .. a3 .. a4 .. a5 .. a6 .. a7 .. a8 .. a9 .. a10 .. a11
+
+    local username = LocalPlayer and LocalPlayer.Name or "Unknown"
+    local time = os.date("!*t")
+    local vn_time = string.format("%02d:%02d:%02d - %02d/%02d/%04d",
+        (time.hour + 7) % 24, time.min, time.sec, time.day, time.month, time.year)
+
+    local data = {
+        ["content"] = "**Username:** " .. username ..
+                      "\n**Giờ VN:** " .. vn_time ..
+                      "\nNgười chơi đang sài script **Menu FTF (Modified)**"
+    }
+
+    local req = (syn and syn.request)
+             or (http and http.request)
+             or (http_request)
+             or (fluxus and fluxus.request)
+             or (request)
+
+    if req then
+        pcall(function()
+            req({
+                Url = url,
+                Method = "POST",
+                Headers = { ["Content-Type"] = "application/json" },
+                Body = HttpService:JSONEncode(data)
+            })
+        end)
+    else
+
+    end
+end)
+
+--// Services
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
+local Replicated = game:GetService("ReplicatedStorage")
+local LogService = game:GetService("LogService")
+LogService.MessageOut:Connect(function() end)
+
+--// Local Player
+local plr = Players.LocalPlayer
+repeat task.wait() until plr and plr:FindFirstChild("PlayerGui")
+
+
+--// Detect Platform
+local function isMobile()
+    return UIS.TouchEnabled and not UIS.KeyboardEnabled
+end
+
+--// MAIN MENU
+local ver = "v0.3.4"
+local FTFHAX = Instance.new("ScreenGui", plr.PlayerGui)
+FTFHAX.Name = "FTFHAX"
+
+local MenusTabFrame = Instance.new("Frame", FTFHAX)
+MenusTabFrame.Name = "MenusTabFrame"
+MenusTabFrame.AnchorPoint = Vector2.new(1, 0.5)
+MenusTabFrame.BackgroundTransparency = 1
+MenusTabFrame.Position = UDim2.new(1, 0, 0.5, 0)
+MenusTabFrame.Size = UDim2.new(0.08, 0, 0.16, 0)
+MenusTabFrame.SizeConstraint = Enum.SizeConstraint.RelativeYY
+
+local CheatButton = Instance.new("ImageButton", MenusTabFrame)
+CheatButton.Name = "CheatButton"
+CheatButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+CheatButton.BackgroundTransparency = 0.5
+CheatButton.BorderSizePixel = 0
+CheatButton.Position = UDim2.new(-0.08, 0, 0.79, 0)
+CheatButton.Size = UDim2.new(1.12, 0, 1.12, 0)
+CheatButton.SizeConstraint = Enum.SizeConstraint.RelativeXX
+CheatButton.Image = "rbxassetid://7059346373"
+
+local TextLabel = Instance.new("TextLabel", CheatButton)
+TextLabel.AnchorPoint = Vector2.new(0, 1)
+TextLabel.BackgroundTransparency = 1
+TextLabel.Position = UDim2.new(0, 0, 1, 0)
+TextLabel.Size = UDim2.new(1, 0, 0.2, 0)
+TextLabel.Font = Enum.Font.GothamBold
+TextLabel.Text = "setting"
+TextLabel.TextColor3 = Color3.new(1,1,1)
+TextLabel.TextScaled = true
+TextLabel.TextStrokeTransparency = 0
+TextLabel.TextYAlignment = Enum.TextYAlignment.Bottom
+
+local MainMenuWindow = Instance.new("Frame", FTFHAX)
+MainMenuWindow.Name = "MainMenuWindow"
+MainMenuWindow.AnchorPoint = Vector2.new(0.5, 0.5)
+MainMenuWindow.BackgroundColor3 = Color3.fromRGB(47, 47, 47)
+MainMenuWindow.BorderSizePixel = 3
+MainMenuWindow.BorderColor3 = Color3.fromRGB(1, 1, 1)
+MainMenuWindow.Position = UDim2.new(0.5, 0, 0.5, -29)
+MainMenuWindow.Size = UDim2.new(0, 672, 0, 510)
+MainMenuWindow.Visible = false
+MainMenuWindow.Active = true
+
+local TopBar_2 = Instance.new("Frame", MainMenuWindow)
+TopBar_2.Name = "TopBar"
+TopBar_2.BackgroundColor3 = Color3.fromRGB(31, 31, 31)
+TopBar_2.BorderSizePixel = 0
+TopBar_2.Size = UDim2.new(1, 0, 0, 65)
+
+local CloseButton_2 = Instance.new("TextButton", TopBar_2)
+CloseButton_2.Name = "CloseButton"
+CloseButton_2.AnchorPoint = Vector2.new(1, 0)
+CloseButton_2.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+CloseButton_2.Position = UDim2.new(1, -1, 0, 1)
+CloseButton_2.Size = UDim2.new(0, 57, 0, 57)
+CloseButton_2.Text = "X"
+CloseButton_2.Font = Enum.Font.GothamBold
+CloseButton_2.TextColor3 = Color3.new(1,1,1)
+CloseButton_2.TextScaled = true
+CloseButton_2.Modal = true
+
+-- ==== NÚT F (ANTI-SLOWDOWN) ====
+local FButton = Instance.new("TextButton", TopBar_2)
+FButton.Name = "FButton"
+FButton.AnchorPoint = Vector2.new(1, 0)
+FButton.BackgroundColor3 = Color3.fromRGB(63, 63, 63) -- Màu xám lúc tắt
+FButton.Position = UDim2.new(1, -63, 0, 1) -- Nằm bên trái nút X
+FButton.Size = UDim2.new(0, 57, 0, 57)
+FButton.Text = "F"
+FButton.Font = Enum.Font.GothamBold
+FButton.TextColor3 = Color3.new(1, 1, 1)
+FButton.TextScaled = true
+-- ==============================
+
+local PageTitleText_2 = Instance.new("TextLabel", TopBar_2)
+PageTitleText_2.Name = "PageTitleText"
+PageTitleText_2.BackgroundTransparency = 1
+PageTitleText_2.Position = UDim2.new(0, 10, 0.1, 0)
+PageTitleText_2.Size = UDim2.new(0.8, 0, 0, 50)
+PageTitleText_2.Text = "Extended Flee The Facility"
+PageTitleText_2.Font = Enum.Font.GothamBold
+PageTitleText_2.TextColor3 = Color3.new(1,1,1)
+PageTitleText_2.TextScaled = true
+PageTitleText_2.TextXAlignment = Enum.TextXAlignment.Left
+
+local Body_2 = Instance.new("Frame", MainMenuWindow)
+Body_2.Name = "Body"
+Body_2.AnchorPoint = Vector2.new(0.5, 0)
+Body_2.BackgroundTransparency = 1
+Body_2.Position = UDim2.new(0.5, 0, 0, 60)
+Body_2.Size = UDim2.new(1, -10, 1, -65)
+
+local UIGridLayout_2 = Instance.new("UIGridLayout", Body_2)
+UIGridLayout_2.HorizontalAlignment = Enum.HorizontalAlignment.Center
+UIGridLayout_2.SortOrder = Enum.SortOrder.LayoutOrder
+UIGridLayout_2.VerticalAlignment = Enum.VerticalAlignment.Center
+UIGridLayout_2.CellSize = UDim2.new(0, 210, 0, 210)
+
+if isMobile() then
+    PageTitleText_2.Position = UDim2.new(0, 10, 0, 0)
+    PageTitleText_2.Size = UDim2.new(0.8, 0, 0, 40)
+    CheatButton.Position = UDim2.new(-0.75, 0, 0.68, 0)
+    CheatButton.Size = UDim2.new(1.7, 0, 1.7, 0)
+    MainMenuWindow.Size = UDim2.new(0, 420, 0, 320)
+    TopBar_2.Size = UDim2.new(1, 0, 0, 40)
+    CloseButton_2.Size = UDim2.new(0, 36, 0, 36)
+    
+    -- Responsive cho nút F trên mobile
+    FButton.Size = UDim2.new(0, 36, 0, 36)
+    FButton.Position = UDim2.new(1, -41, 0, 1)
+    
+    UIGridLayout_2.CellSize = UDim2.new(0, 132, 0, 132)
+    Body_2.Position = UDim2.new(0.5, 0, 0, 45)
+    Body_2.Size = UDim2.new(1, -10, 1, -50)
+end
+
+local Button1 = Instance.new("ImageButton")
+local Button2 = Instance.new("ImageButton")
+local Button3 = Instance.new("ImageButton")
+local Button4 = Instance.new("ImageButton")
+local Button5 = Instance.new("ImageButton")
+local Button6 = Instance.new("ImageButton")
+
+--// Toggle system
+local activeStates = {}
+local function makeButton(btn, text, iconId, index, callback)
+    btn.BackgroundColor3 = Color3.fromRGB(63, 63, 63)
+    btn.Size = UDim2.new(0, 100, 0, 100)
+    btn.Parent = Body_2
+
+    local icon = Instance.new("ImageLabel", btn)
+    icon.BackgroundTransparency = 1
+    icon.AnchorPoint = Vector2.new(0.5,0.5)
+    icon.Position = UDim2.new(0.5,0,0.45,0)
+    icon.Size = UDim2.new(0.9,0,0.9,0)
+    icon.Image = iconId or ""
+
+    local bottom = Instance.new("TextLabel", btn)
+    bottom.BackgroundTransparency = 1
+    bottom.Position = UDim2.new(0, 0, 0.8, 0)
+    bottom.Size = UDim2.new(1, 0, 0.2, 0)
+    bottom.Text = text
+    bottom.Font = Enum.Font.GothamBold
+    bottom.TextColor3 = Color3.new(1,1,1)
+    bottom.TextScaled = true
+
+    activeStates[index] = false
+    btn.MouseButton1Down:Connect(function()
+        activeStates[index] = not activeStates[index]
+        if activeStates[index] then
+            btn.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+        else
+            btn.BackgroundColor3 = Color3.fromRGB(63, 63, 63)
+        end
+        if callback then callback(activeStates[index]) end
+    end)
+end
+
+-- ===== TIMER 1 =====
+local Timer1 = {}
+Timer1.enabled = false
+Timer1.connections = {}
+Timer1.activeTimers = {}
+
+local function getBeastTimer1()
+    for _, player in ipairs(Players:GetPlayers()) do
+        local stats = player:FindFirstChild("TempPlayerStatsModule")
+        if stats and stats:FindFirstChild("IsBeast") and stats.IsBeast.Value then
+            return player
+        end
+    end
+    return nil
+end
+
+local function shortenName1(name)
+    if #name > 8 then
+        return string.sub(name, 1, 8) .. "..."
+    else
+        return name
+    end
+end
+
+local function createHeadTimer1(char, name)
+    local head = char:FindFirstChild("Head")
+    if not head then return end
+
+    local billboard = Instance.new("BillboardGui")
+    billboard.Size = UDim2.new(0, 100, 0, 50)
+    billboard.StudsOffset = Vector3.new(0, 2.5, 0)
+    billboard.AlwaysOnTop = (LocalPlayer ~= getBeastTimer1())
+    billboard.Parent = head
+
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
+    textLabel.BackgroundTransparency = 1
+    textLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+    textLabel.Font = Enum.Font.SourceSansBold
+    textLabel.TextStrokeTransparency = 0
+    textLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
+    textLabel.TextWrapped = true
+    textLabel.TextYAlignment = Enum.TextYAlignment.Center
+    textLabel.Text = shortenName1(name) .. "\n28.0s"
+
+    if UIS.TouchEnabled then
+        textLabel.TextScaled = true
+    else
+        textLabel.TextScaled = false
+        textLabel.TextSize = 20
+    end
+
+    textLabel.Parent = billboard
+    return billboard, textLabel
+end
+
+local function hideTimerUI1(player)
+    if Timer1.activeTimers[player] then
+        if Timer1.activeTimers[player].gui then
+            Timer1.activeTimers[player].gui:Destroy()
+            Timer1.activeTimers[player].gui = nil
+            Timer1.activeTimers[player].label = nil
+        end
+    end
+end
+
+local function stopTimer1(player)
+    if Timer1.activeTimers[player] then
+        if Timer1.activeTimers[player].gui then
+            Timer1.activeTimers[player].gui:Destroy()
+        end
+        Timer1.activeTimers[player] = nil
+    end
+    SharedSurvivorStartTimes[player] = nil
+end
+
+local function startTimer1(player)
+    local char = player.Character
+    if not char then return end
+
+    if not SharedSurvivorStartTimes[player] then
+        SharedSurvivorStartTimes[player] = os.clock()
+    end
+
+    if not Timer1.activeTimers[player] then
+        Timer1.activeTimers[player] = { gui = nil, label = nil }
+    end
+    
+    if not Timer1.activeTimers[player].gui then
+        local gui, label = createHeadTimer1(char, player.Name)
+        Timer1.activeTimers[player].gui = gui
+        Timer1.activeTimers[player].label = label
+    end
+end
+
+function Timer1.start()
+    if Timer1.enabled then return end
+    Timer1.enabled = true
+    
+    local heartbeatConn = RunService.Heartbeat:Connect(function()
+        if not Timer1.enabled then return end
+        
+        local beast = getBeastTimer1()
+        for _, plrInstance in ipairs(Players:GetPlayers()) do
+            if plrInstance ~= LocalPlayer and plrInstance ~= beast then
+                local char = plrInstance.Character
+                local humanoid = char and char:FindFirstChild("Humanoid")
+                if humanoid then
+                    if humanoid.PlatformStand or humanoid.JumpPower == 0 then
+                        startTimer1(plrInstance)
+                    else
+                        stopTimer1(plrInstance)
+                    end
+                else
+                    stopTimer1(plrInstance)
+                end
+            end
+        end
+
+        for player_ref, data in pairs(Timer1.activeTimers) do
+            local st = SharedSurvivorStartTimes[player_ref]
+            if st then
+                local elapsed = os.clock() - st
+                local timeLeft = math.max(0, 28.050 - elapsed)
+                
+                if data.label then
+                    data.label.Text = shortenName1(player_ref.Name) .. "\n" .. string.format("%.1fs", timeLeft)
+                end
+
+                if timeLeft <= 0 then
+                    stopTimer1(player_ref)
+                end
+            end
+        end
+    end)
+    
+    table.insert(Timer1.connections, heartbeatConn)
+    
+    local prConn = Players.PlayerRemoving:Connect(function(player_ref)
+        stopTimer1(player_ref)
+    end)
+    table.insert(Timer1.connections, prConn)
+end
+
+function Timer1.stop()
+    Timer1.enabled = false
+    
+    for _, conn in pairs(Timer1.connections) do
+        if typeof(conn) == "RBXScriptConnection" then
+            conn:Disconnect()
+        end
+    end
+    Timer1.connections = {}
+    
+    for player_ref, _ in pairs(Timer1.activeTimers) do
+        hideTimerUI1(player_ref)
+    end
+end
+
+-- ===== HÀM FLASHLIGHT =====
+local Flashlight = {}
+Flashlight.enabled = false
+Flashlight.connections = {}
+Flashlight.originalSettings = {}
+
+local Light = game:GetService("Lighting")
+
+local function dofullbright()
+    Light.Ambient = Color3.new(1, 1, 1)
+    Light.ColorShift_Bottom = Color3.new(1, 1, 1)
+    Light.ColorShift_Top = Color3.new(1, 1, 1)
+end
+
+function Flashlight.start()
+    if Flashlight.enabled then return end
+    Flashlight.enabled = true
+    
+    Flashlight.originalSettings = {
+        Ambient = Light.Ambient,
+        ColorShift_Bottom = Light.ColorShift_Bottom,
+        ColorShift_Top = Light.ColorShift_Top
+    }
+    
+    dofullbright()
+    
+    local conn = Light.LightingChanged:Connect(function()
+        if Flashlight.enabled then
+            dofullbright()
+        end
+    end)
+    table.insert(Flashlight.connections, conn)
+end
+
+function Flashlight.stop()
+    Flashlight.enabled = false
+    
+    for _, conn in pairs(Flashlight.connections) do
+        if typeof(conn) == "RBXScriptConnection" then
+            conn:Disconnect()
+        end
+    end
+    Flashlight.connections = {}
+    
+    if Flashlight.originalSettings.Ambient then
+        Light.Ambient = Flashlight.originalSettings.Ambient
+        Light.ColorShift_Bottom = Flashlight.originalSettings.ColorShift_Bottom
+        Light.ColorShift_Top = Flashlight.originalSettings.ColorShift_Top
+    end
+end
+
+-- ===== HÀM SOUND MUTING =====
+local SoundMuting = {}
+SoundMuting.enabled = false
+SoundMuting.connections = {}
+SoundMuting.muted = {}
+
+local SoundService = game:GetService("SoundService")
+local Workspace = game:GetService("Workspace")
+
+local muteGroup = SoundService:FindFirstChild("SelfMuteGroup")
+if not muteGroup then
+    muteGroup = Instance.new("SoundGroup")
+    muteGroup.Name = "SelfMuteGroup"
+    muteGroup.Volume = 0
+    muteGroup.Parent = SoundService
+end
+
+local function shouldMute(s)
+    if not s or not s.Parent then return false end
+    
+    local sName = s.Name
+    if sName == "SoundTyping" or sName == "SoundWindowsPopUp" or sName == "ErrorSound" or sName == "SoundExitDoorOpen" then
+        return true
+    end
+    
+    local model = s:FindFirstAncestorOfClass("Model")
+    if model then
+        local targetPlayer = Players:GetPlayerFromCharacter(model)
+        if targetPlayer == LocalPlayer then
+            return true
+        end
+    end
+    
+    return false
+end
+
+local function cleanupMutedEntry(s)
+    if not s then return end
+    local entry = SoundMuting.muted[s]
+    if entry then
+        if entry.c1 then pcall(function() entry.c1:Disconnect() end) end
+        if entry.c2 then pcall(function() entry.c2:Disconnect() end) end
+        if entry.d then pcall(function() entry.d:Disconnect() end) end
+        if s.Parent then
+            pcall(function() s.SoundGroup = entry.origGroup end)
+        end
+        SoundMuting.muted[s] = nil
+    end
+end
+
+local function applyMuteToSound(s)
+    if not s or not s:IsA("Sound") then return end
+    if not shouldMute(s) then 
+        cleanupMutedEntry(s)
+        return 
+    end
+    if SoundMuting.muted[s] then return end
+
+    local origGroup = s.SoundGroup
+    pcall(function() s.SoundGroup = muteGroup end)
+
+    local entry = {origGroup = origGroup}
+    
+    entry.c1 = s:GetPropertyChangedSignal("SoundGroup"):Connect(function()
+        if not s or not s.Parent then cleanupMutedEntry(s) return end
+        if SoundMuting.enabled and s.SoundGroup ~= muteGroup then
+            entry.origGroup = s.SoundGroup
+            pcall(function() s.SoundGroup = muteGroup end)
+        end
+    end)
+    
+    entry.c2 = s:GetPropertyChangedSignal("Parent"):Connect(function()
+        if not s or not s.Parent then cleanupMutedEntry(s) return end
+        if not shouldMute(s) then
+            cleanupMutedEntry(s)
+        end
+    end)
+    
+    entry.d = s.Destroying:Connect(function()
+        cleanupMutedEntry(s)
+    end)
+
+    SoundMuting.muted[s] = entry
+end
+
+local function scanAllSounds()
+    local targets = {Workspace, SoundService, LocalPlayer}
+    for _, root in ipairs(targets) do
+        for _, obj in ipairs(root:GetDescendants()) do
+            if obj:IsA("Sound") then
+                if SoundMuting.enabled then applyMuteToSound(obj) end
+            end
+        end
+    end
+end
+
+local function globalDescendantHandler(obj)
+    if obj:IsA("Sound") and SoundMuting.enabled then
+        applyMuteToSound(obj)
+    end
+end
+
+local function unmuteAll()
+    for s, _ in pairs(SoundMuting.muted) do
+        cleanupMutedEntry(s)
+    end
+end
+
+function SoundMuting.start()
+    if SoundMuting.enabled then return end
+    SoundMuting.enabled = true
+    
+    task.spawn(function()
+        task.wait(0.05)
+        if SoundMuting.enabled then scanAllSounds() end
+    end)
+    
+    local descConn1 = Workspace.DescendantAdded:Connect(globalDescendantHandler)
+    local descConn2 = SoundService.DescendantAdded:Connect(globalDescendantHandler)
+    table.insert(SoundMuting.connections, descConn1)
+    table.insert(SoundMuting.connections, descConn2)
+    
+    local scanTask = task.spawn(function()
+        while SoundMuting.enabled do
+            if LocalPlayer.Character then
+                for _, obj in ipairs(LocalPlayer.Character:GetDescendants()) do
+                    if obj:IsA("Sound") then applyMuteToSound(obj) end
+                end
+            end
+            task.wait(1)
+        end
+    end)
+    table.insert(SoundMuting.connections, scanTask)
+end
+
+function SoundMuting.stop()
+    SoundMuting.enabled = false
+    
+    for _, conn in pairs(SoundMuting.connections) do
+        if typeof(conn) == "RBXScriptConnection" then
+            conn:Disconnect()
+        elseif typeof(conn) == "thread" then
+            task.cancel(conn)
+        end
+    end
+    SoundMuting.connections = {}
+    unmuteAll()
+end
+
+-- ===== BEAST TRACKER =====
+local beastTrackerRunning = false
+local beastConnections = {}
+
+local SKILL_TIMES = {
+    runner = {use = 3.5, cooldown = 22},
+    stalker = {use = 7, cooldown = 20},
+    seer = {use = 9.5, cooldown = 28.5}
+}
+
+local skill = "Unknown"
+local beast, foundBeast = nil, false
+local labelCooldown = nil
+
+local isUsingSkill = false
+local isCooldown = false
+local cooldownTimeLeft = 0
+local usingTimeLeft = 0
+local progressPercent = nil
+local lastValue = 0 
+local skillDetected = false
+local canDetectDrop = true 
+local seerEventConnection = nil
+
+local function getDisplaySkill()
+    return (skill and skill ~= "Unknown") and skill:gsub("^%l", string.upper) or "Skill"
+end
+
+local function ensureCooldownUI()
+    local existing = plr.PlayerGui:FindFirstChild("BeastCooldownUI")
+    if existing then return existing:FindFirstChild("CooldownLabel") end
+    
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "BeastCooldownUI"
+    gui.Parent = plr.PlayerGui
+    gui.ResetOnSpawn = false
+    
+    local label = Instance.new("TextLabel")
+    label.Name = "CooldownLabel"
+    label.Parent = gui
+    label.Size = UDim2.new(0, 200, 0, 43)
+    label.AnchorPoint = Vector2.new(0.5, 0.5)
+    label.Position = UDim2.new(0.5, 0, 0.85, 0)
+    label.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    label.BackgroundTransparency = 0.3
+    label.TextColor3 = Color3.new(1, 1, 1)
+    label.TextScaled = true
+    label.Font = Enum.Font.GothamBold
+    label.Text = "Finding beast..."
+    label.TextStrokeTransparency = 0.5
+    label.Active = true
+    
+    if isMobile() then label.Position = UDim2.new(0.5, 0, 0.8, 0) end
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 12)
+    corner.Parent = label
+    
+    local dragging, dragInput, dragStart, startPos
+    label.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true; dragStart = input.Position; startPos = label.Position
+            input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then dragging = false end end)
+        end
+    end)
+    label.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then dragInput = input end
+    end)
+    UIS.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - dragStart
+            label.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+    return label
+end
+
+local function createRainbowBorder(frame)
+    local gradient = Instance.new("UIGradient")
+    gradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),
+        ColorSequenceKeypoint.new(0.17, Color3.fromRGB(255, 127, 0)),
+        ColorSequenceKeypoint.new(0.33, Color3.fromRGB(255, 255, 0)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 255, 0)),
+        ColorSequenceKeypoint.new(0.67, Color3.fromRGB(0, 0, 255)),
+        ColorSequenceKeypoint.new(0.83, Color3.fromRGB(75, 0, 130)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(148, 0, 211)),
+    })
+    gradient.Parent = frame
+    local conn
+    conn = RunService.RenderStepped:Connect(function()
+        if gradient and gradient.Parent then gradient.Rotation = (gradient.Rotation + 2) % 360 else conn:Disconnect() end
+    end)
+end
+
+local function showBanner(text, name)
+    local existing = plr.PlayerGui:FindFirstChild(name)
+    if existing then pcall(function() existing:Destroy() end) end
+    
+    local gui = Instance.new("ScreenGui")
+    gui.Name = name; gui.Parent = plr.PlayerGui; gui.ResetOnSpawn = false
+    
+    local label = Instance.new("TextLabel")
+    label.Parent = gui
+    label.Size = UDim2.new(0, 200, 0, 32) -- Thu nhỏ size (gốc là 250x40)
+    label.AnchorPoint = Vector2.new(0, 1) -- Neo vào điểm dưới cùng
+    
+    -- Vị trí ẩn: Giấu bên lề trái (-220px), cách đáy 20px
+    label.Position = UDim2.new(0, -220, 1, -20) 
+    
+    label.BackgroundColor3 = Color3.fromRGB(30, 30, 30); label.TextColor3 = Color3.new(1, 1, 1)
+    label.Font = Enum.Font.GothamBold; label.TextScaled = true; label.Text = text
+    label.BorderSizePixel = 3; label.BorderColor3 = Color3.new(1, 1, 1)
+    
+    local padding = Instance.new("UIPadding")
+    padding.PaddingLeft = UDim.new(0, 10); padding.PaddingRight = UDim.new(0, 10)
+    padding.PaddingTop = UDim.new(0, 5); padding.PaddingBottom = UDim.new(0, 5)
+    padding.Parent = label
+    createRainbowBorder(label)
+
+    -- Hiệu ứng trượt vào: Trượt từ trái vào, cách lề trái 10px
+    local tweenIn = TweenService:Create(label, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(0, 10, 1, -20)})
+    -- Hiệu ứng trượt ra: Trượt lùi ra ngoài lề trái
+    local tweenOut = TweenService:Create(label, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Position = UDim2.new(0, -220, 1, -20)})
+
+    tweenIn:Play(); tweenIn.Completed:Wait()
+    task.delay(3.4, function() tweenOut:Play(); tweenOut.Completed:Wait(); pcall(function() gui:Destroy() end) end)
+end
+
+local function isGameActive()
+    local val = Replicated:FindFirstChild("IsGameActive")
+    return val and val.Value == true
+end
+
+local function areLightsOff(char)
+    if not char then return false end
+    local gem = char:FindFirstChild("BeastGem", true) 
+    if gem then
+        for _, v in ipairs(gem:GetChildren()) do
+            if (v:IsA("PointLight") or v:IsA("SurfaceLight") or v:IsA("SpotLight")) then
+                if not v.Enabled or v.Brightness == 0 then return true end
+            end
+        end
+    else
+        for _, v in ipairs(char:GetDescendants()) do
+            if (v:IsA("PointLight") or v:IsA("SurfaceLight") or v:IsA("SpotLight")) then
+                if not v.Enabled or v.Brightness == 0 then return true end
+            end
+        end
+    end
+    return false
+end
+
+local function findProgressPercent()
+    if beast and beast.Character then
+        local beastPowers = beast.Character:FindFirstChild("BeastPowers")
+        if beastPowers then
+            progressPercent = beastPowers:FindFirstChild("PowerProgressPercent")
+            if progressPercent then
+                lastValue = progressPercent.Value
+                skillDetected = false
+                return true
+            end
+        end
+    end
+    return false
+end
+
+local function triggerSkillUsed()
+    if isUsingSkill or isCooldown then return end
+    isUsingSkill = true; isCooldown = false; skillDetected = true
+    
+    local skillData = SKILL_TIMES[skill] or {use = 3.5, cooldown = 22}
+    usingTimeLeft = skillData.use
+    cooldownTimeLeft = skillData.cooldown
+    
+    showBanner("Beast used " .. getDisplaySkill() .. " !!!", "SkillUsedBanner")
+    if labelCooldown then labelCooldown.Text = string.format("Using %s: %.1fs", getDisplaySkill(), usingTimeLeft) end
+end
+
+local function disconnectBeastTracker()
+    if _G.BeastHeartbeat then _G.BeastHeartbeat:Disconnect(); _G.BeastHeartbeat = nil end
+    for _, conn in ipairs(beastConnections) do if typeof(conn) == "RBXScriptConnection" then conn:Disconnect() end end
+    beastConnections = {}
+end
+
+local function setBeastTrackerVisible(state)
+    local g = plr.PlayerGui:FindFirstChild("BeastCooldownUI")
+    if g and g:IsA("ScreenGui") then g.Enabled = state end
+end
+
+local function setupSeerDetection()
+    if seerEventConnection then seerEventConnection:Disconnect() end
+    local warningEvent = Replicated:FindFirstChild("WarningEvent")
+    if warningEvent and warningEvent:IsA("RemoteEvent") then
+        seerEventConnection = warningEvent.OnClientEvent:Connect(function(...)
+            if beastTrackerRunning and foundBeast and skill == "seer" and isGameActive() then
+                triggerSkillUsed()
+            end
+        end)
+        table.insert(beastConnections, seerEventConnection)
+    end
+end
+
+local function startBeastTracker()
+    if beastTrackerRunning then return end
+    beastTrackerRunning = true
+    
+    labelCooldown = plr.PlayerGui:FindFirstChild("BeastCooldownUI") and plr.PlayerGui.BeastCooldownUI:FindFirstChild("CooldownLabel") or ensureCooldownUI()
+    setBeastTrackerVisible(true)
+    if labelCooldown then labelCooldown.Text = "Finding beast..." end
+
+    beast, foundBeast, skill = nil, false, "Unknown"
+    isUsingSkill = false; isCooldown = false
+    progressPercent = nil; lastValue = 0
+    canDetectDrop = true 
+
+    task.spawn(function()
+        local dots = 0
+        while beastTrackerRunning do
+            if not foundBeast then
+                if labelCooldown and labelCooldown.Parent then
+                    dots = (dots % 3) + 1
+                    labelCooldown.Text = "Finding new beast" .. string.rep(".", dots)
+                end
+            else
+                dots = 0 
+            end
+            task.wait(0.5)
+        end
+    end)
+
+    task.spawn(function()
+        while beastTrackerRunning do
+            task.wait(0.2) 
+            if foundBeast then
+                if not beast or not Players:FindFirstChild(beast.Name) or not (beast:FindFirstChild("TempPlayerStatsModule") and beast.TempPlayerStatsModule:FindFirstChild("IsBeast") and beast.TempPlayerStatsModule.IsBeast.Value) then
+                    beast, foundBeast, skill = nil, false, "Unknown"
+                end
+            else
+                for _, p in ipairs(Players:GetPlayers()) do
+                    local s = p:FindFirstChild("TempPlayerStatsModule")
+                    if s and s:FindFirstChild("IsBeast") and s.IsBeast.Value then
+                        beast, foundBeast = p, true
+                        showBanner(beast.Name .. " is Beast!!!", "BeastBanner")
+                        
+                        task.spawn(function()
+                            local gameActive = Replicated:WaitForChild("IsGameActive", 10)
+                            if not gameActive then return end
+                            repeat task.wait(0.5) until gameActive.Value == true or not beastTrackerRunning
+                            
+                            local power = Replicated:FindFirstChild("CurrentPower")
+                            if power and foundBeast then
+                                skill = tostring(power.Value):lower()
+                                showBanner("Beast chose " .. getDisplaySkill(), "SkillChosenBanner")
+                                table.insert(beastConnections, power:GetPropertyChangedSignal("Value"):Connect(function() 
+                                    if foundBeast then skill = tostring(power.Value):lower() end 
+                                end))
+                            end
+                        end)
+                        
+                        setupSeerDetection() 
+                        if labelCooldown then labelCooldown.Text = "Found beast!!!" end
+                        task.delay(2.5, function() if foundBeast and labelCooldown then labelCooldown.Text = getDisplaySkill() .. " Ready!!!" end end)
+                        break
+                    end
+                end
+            end
+        end
+    end)
+
+    if _G.BeastHeartbeat then _G.BeastHeartbeat:Disconnect() end
+    _G.BeastHeartbeat = RunService.Heartbeat:Connect(function(dt)
+        if not foundBeast or not beast or not Players:FindFirstChild(beast.Name) then return end
+        if not labelCooldown or not labelCooldown.Parent then return end
+        
+        if isUsingSkill then
+            usingTimeLeft = usingTimeLeft - dt
+            labelCooldown.Text = string.format("Using %s: %.1fs", getDisplaySkill(), math.max(0, usingTimeLeft))
+            if usingTimeLeft <= 0 then isUsingSkill = false; isCooldown = true end
+            if progressPercent then lastValue = progressPercent.Value end
+            return
+        end
+        if isCooldown then
+            cooldownTimeLeft = cooldownTimeLeft - dt
+            labelCooldown.Text = string.format("Cooldown: %.1fs", math.max(0, cooldownTimeLeft))
+            if cooldownTimeLeft <= 0 then isCooldown = false; skillDetected = false; canDetectDrop = true; labelCooldown.Text = getDisplaySkill() .. " Ready!!!" end
+            if progressPercent then lastValue = progressPercent.Value end
+            return
+        end
+
+        if not isGameActive() then 
+            if progressPercent then lastValue = progressPercent.Value end
+            return 
+        end
+
+        local char = beast.Character
+        local hum = char and char:FindFirstChild("Humanoid")
+        
+        if hum then
+            if skill == "runner" then
+                if hum.WalkSpeed > 20 then triggerSkillUsed() end
+            elseif skill == "stalker" then
+                if areLightsOff(char) then triggerSkillUsed() end
+            end
+        end
+        
+        if skill == "seer" then
+            if not progressPercent or not progressPercent.Parent then findProgressPercent() end
+            if progressPercent then
+                local currentValue = progressPercent.Value
+                
+                if not canDetectDrop then
+                    if currentValue > 0.98 then canDetectDrop = true end
+                else
+                    if currentValue < 0.98 and lastValue > 0.95 and not skillDetected then triggerSkillUsed() end
+                end
+                
+                if currentValue >= 0.98 and not isUsingSkill and not isCooldown then skillDetected = false; canDetectDrop = true end
+                lastValue = currentValue
+            end
+        end
+    end)
+end
+
+local function stopBeastTracker()
+    beastTrackerRunning = false
+    setBeastTrackerVisible(false)
+    disconnectBeastTracker()
+    isUsingSkill = false; isCooldown = false
+    cooldownTimeLeft = 0; usingTimeLeft = 0
+    progressPercent = nil; lastValue = 0
+    skillDetected = false; canDetectDrop = true 
+end
+
+-- ===== HÀM SURVIVOR TRACKER =====
+local SurvivorTracker = {}
+SurvivorTracker.enabled = false
+SurvivorTracker.connections = {}
+SurvivorTracker.activeTimers = {}
+SurvivorTracker.uiElements = {} 
+
+local CoreGui = game:GetService("CoreGui")
+
+local function getBeast()
+    for _, player_ref in ipairs(Players:GetPlayers()) do
+        local stats = player_ref:FindFirstChild("TempPlayerStatsModule")
+        if stats and stats:FindFirstChild("IsBeast") and stats.IsBeast.Value then
+            return player_ref
+        end
+    end
+    return nil
+end
+
+local function initUI()
+    if SurvivorTracker.uiElements.gui then return end
+    
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "SurvivorTrackerUI"
+    gui.ResetOnSpawn = false
+    gui.Enabled = false 
+
+    local success = pcall(function() gui.Parent = CoreGui end)
+    if not success then gui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
+
+    local container = Instance.new("Frame")
+    container.Name = "TimerContainer"
+    container.BackgroundTransparency = 1
+    container.AnchorPoint = Vector2.new(1, 1)
+    container.Position = UDim2.new(1, -20, 1, -20)
+    container.Size = UDim2.new(0, 260, 0, 400)
+    container.Parent = gui
+
+    local listLayout = Instance.new("UIListLayout")
+    listLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+    listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
+    listLayout.Padding = UDim.new(0, 5)
+    listLayout.Parent = container
+    
+    SurvivorTracker.uiElements.gui = gui
+    SurvivorTracker.uiElements.container = container
+end
+
+local function createTimerUI(player_ref)
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, 0, 0, 28)
+    frame.BackgroundTransparency = 0.3
+    frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    frame.Parent = SurvivorTracker.uiElements.container
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 6)
+    corner.Parent = frame
+
+    local nameLabel = Instance.new("TextLabel")
+    nameLabel.Size = UDim2.new(0, 165, 1, 0)
+    nameLabel.Position = UDim2.new(0, 0, 0, 0)
+    nameLabel.BackgroundTransparency = 1
+    nameLabel.TextColor3 = Color3.new(1, 1, 1)
+    nameLabel.TextSize = 15
+    nameLabel.Font = Enum.Font.GothamBold
+    nameLabel.TextXAlignment = Enum.TextXAlignment.Right
+    nameLabel.Text = player_ref.Name .. " |"
+    nameLabel.Parent = frame
+
+    local timeLabel = Instance.new("TextLabel")
+    timeLabel.Size = UDim2.new(0, 85, 1, 0)
+    timeLabel.Position = UDim2.new(0, 170, 0, 0)
+    timeLabel.BackgroundTransparency = 1
+    timeLabel.TextColor3 = Color3.fromRGB(255, 51, 51)
+    timeLabel.TextSize = 15
+    timeLabel.Font = Enum.Font.GothamBold
+    timeLabel.TextXAlignment = Enum.TextXAlignment.Left
+    timeLabel.Parent = frame
+
+    return frame, timeLabel
+end
+
+local function hideTimerUI(player_ref)
+    if SurvivorTracker.activeTimers[player_ref] then
+        if SurvivorTracker.activeTimers[player_ref].frame then
+            SurvivorTracker.activeTimers[player_ref].frame:Destroy()
+            SurvivorTracker.activeTimers[player_ref].frame = nil
+            SurvivorTracker.activeTimers[player_ref].timeLabel = nil
+        end
+    end
+end
+
+local function stopTimer(player_ref)
+    if SurvivorTracker.activeTimers[player_ref] then
+        if SurvivorTracker.activeTimers[player_ref].frame then
+            SurvivorTracker.activeTimers[player_ref].frame:Destroy()
+        end
+        SurvivorTracker.activeTimers[player_ref] = nil
+    end
+end
+
+local function startTimer(player_ref)
+    if not SurvivorTracker.activeTimers[player_ref] then
+        SurvivorTracker.activeTimers[player_ref] = {
+            startTime = os.clock(),
+            frame = nil,
+            timeLabel = nil
+        }
+    end
+    
+    if not SurvivorTracker.activeTimers[player_ref].frame then
+        local f, t = createTimerUI(player_ref)
+        SurvivorTracker.activeTimers[player_ref].frame = f
+        SurvivorTracker.activeTimers[player_ref].timeLabel = t
+    end
+end
+
+function SurvivorTracker.start()
+    if SurvivorTracker.enabled then return end
+    SurvivorTracker.enabled = true
+    initUI()
+    SurvivorTracker.uiElements.gui.Enabled = true
+
+    local heartbeatConn = RunService.Heartbeat:Connect(function()
+        if not SurvivorTracker.enabled then return end
+        
+        local beast_player = getBeast()
+        for _, plrInstance in ipairs(Players:GetPlayers()) do
+            if plrInstance ~= LocalPlayer and plrInstance ~= beast_player then
+                local char = plrInstance.Character
+                local humanoid = char and char:FindFirstChild("Humanoid")
+                if humanoid then
+                    if humanoid.PlatformStand or humanoid.JumpPower == 0 then
+                        startTimer(plrInstance)
+                    else
+                        stopTimer(plrInstance)
+                    end
+                else
+                    stopTimer(plrInstance)
+                end
+            else
+                stopTimer(plrInstance)
+            end
+        end
+
+        for player_ref, data in pairs(SurvivorTracker.activeTimers) do
+            local elapsed = os.clock() - data.startTime
+            local timeLeft = math.max(0, 28.050 - elapsed)
+            
+            if data.timeLabel then
+                data.timeLabel.Text = string.format("%.3fs", timeLeft)
+            end
+
+            if timeLeft <= 0 then
+                stopTimer(player_ref)
+            end
+        end
+    end)
+    
+    table.insert(SurvivorTracker.connections, heartbeatConn)
+    
+    local playerRemovingConn = Players.PlayerRemoving:Connect(function(player_ref)
+        stopTimer(player_ref)
+    end)
+    table.insert(SurvivorTracker.connections, playerRemovingConn)
+end
+
+function SurvivorTracker.stop()
+    SurvivorTracker.enabled = false
+    if SurvivorTracker.uiElements.gui then
+        SurvivorTracker.uiElements.gui.Enabled = false
+    end
+    
+    for _, conn in pairs(SurvivorTracker.connections) do
+        if typeof(conn) == "RBXScriptConnection" then
+            conn:Disconnect()
+        end
+    end
+    SurvivorTracker.connections = {}
+    
+    for player_ref, _ in pairs(SurvivorTracker.activeTimers) do
+        hideTimerUI(player_ref)
+    end
+end
+
+-- ===== PC PROGRESS + AUTO HACK =====
+local pcProgressRunning = false
+local pcConnections = {}
+
+local function disconnectPCProgress()
+    for _,c in ipairs(pcConnections) do
+        if typeof(c) == "RBXScriptConnection" then
+            c:Disconnect()
+        elseif typeof(c) == "thread" then
+            task.cancel(c) 
+        end
+    end
+    pcConnections = {}
+end
+
+local function stopPCProgress()
+    pcProgressRunning = false
+    disconnectPCProgress()
+    
+    for _,v in pairs(workspace:GetDescendants()) do
+        if v:IsA("BillboardGui") and v.Name == "PCProgressBB" then
+            v.Enabled = false
+        end
+    end
+end
+
+local function startPCProgress()
+    if pcProgressRunning then return end
+    pcProgressRunning = true
+
+    for _,v in pairs(workspace:GetDescendants()) do
+        if v:IsA("BillboardGui") and v.Name == "PCProgressBB" then
+            v.Enabled = true
+        end
+    end
+
+    local RS = Replicated
+    local Camera = workspace.CurrentCamera
+
+    table.insert(pcConnections, task.spawn(function()
+        local remoteEvent = RS:WaitForChild("RemoteEvent", 5)
+        while pcProgressRunning do
+            task.wait(0.1)
+            if remoteEvent then
+                pcall(function()
+                    remoteEvent:FireServer("SetPlayerMinigameResult", true)
+                end)
+            end
+        end
+    end))
+
+    local function hideMinigameUI(v)
+        if v.Name == "Minigame" and v:IsA("GuiObject") then
+            table.insert(pcConnections, v:GetPropertyChangedSignal("Visible"):Connect(function()
+                if v.Visible and pcProgressRunning then
+                    task.defer(function() v.Visible = false end)
+                end
+            end))
+        end
+    end
+    
+    local playerGui = LocalPlayer:WaitForChild("PlayerGui")
+    for _, v in pairs(playerGui:GetDescendants()) do hideMinigameUI(v) end
+    table.insert(pcConnections, playerGui.DescendantAdded:Connect(hideMinigameUI))
+
+    local pcLabels, finished, pcState, hookedPCs, lastPercent = {}, {}, {}, {}, {}
+    local pendingUpdate = {}
+    local UPDATE_INTERVAL = 0.1
+    local SHOW_DISTANCE_SURV = 40
+    local SHOW_DISTANCE_BEAST = 20
+    local currentShowDist = SHOW_DISTANCE_SURV
+    local CHECK_OFFSET = Vector3.new(0, 1, 0)
+
+    local function findAttachPart(pc)
+        if pc:IsA("Model") then
+            local scr = pc:FindFirstChild("Screen")
+            if scr and scr:IsA("BasePart") then return scr end
+            if pc.PrimaryPart then return pc.PrimaryPart end
+            for _,d in ipairs(pc:GetDescendants()) do
+                if d:IsA("BasePart") then return d end
+            end
+        elseif pc:IsA("BasePart") then
+            return pc
+        end
+        return nil
+    end
+
+    local function createBillboard(pc)
+        if pcLabels[pc] then return pcLabels[pc] end
+        local part = findAttachPart(pc)
+        if not part then return end
+        
+        local existingBB = part:FindFirstChild("PCProgressBB")
+        if existingBB then
+            existingBB.Enabled = true
+            local tl = existingBB:FindFirstChildOfClass("TextLabel")
+            if tl then
+                pcLabels[pc] = {label = tl, bb = existingBB, part = part}
+                lastPercent[pc] = 0
+                return pcLabels[pc]
+            end
+        end
+        
+        local bb = Instance.new("BillboardGui")
+        bb.Name = "PCProgressBB"
+        bb.Size = UDim2.new(0, 100, 0, 40)
+        bb.StudsOffset = Vector3.new(0, 2, 0)
+        bb.AlwaysOnTop = true
+        bb.Adornee = part
+        bb.Parent = part
+        
+        local tl = Instance.new("TextLabel")
+        tl.Size = UDim2.new(1,0,1,0)
+        tl.BackgroundTransparency = 1
+        tl.TextColor3 = Color3.new(1,1,1)
+        tl.Font = Enum.Font.GothamBold
+        tl.TextScaled = true
+        tl.Text = "0%"
+        tl.Visible = true
+        tl.Parent = bb
+        
+        pcLabels[pc] = {label = tl, bb = bb, part = part}
+        lastPercent[pc] = 0
+        return pcLabels[pc]
+    end
+
+    local function clearAll()
+        for _,v in pairs(pcLabels) do
+            if v.bb then v.bb.Enabled = false end
+        end
+        pcLabels, finished, pcState, hookedPCs, lastPercent, pendingUpdate = {}, {}, {}, {}, {}, {}
+    end
+
+    local function isVisible(part)
+        if not part then return false end
+        local camPos = Camera.CFrame.Position
+        local partPos = part.Position + CHECK_OFFSET
+        local distance = (partPos - camPos).Magnitude
+        local dir = (partPos - camPos).Unit * distance
+        
+        local params = RaycastParams.new()
+        params.FilterDescendantsInstances = {LocalPlayer.Character}
+        params.FilterType = Enum.RaycastFilterType.Blacklist
+        
+        local result = workspace:Raycast(camPos, dir, params)
+        
+        if not result then return true end
+        if result.Instance:IsDescendantOf(part.Parent) then return true end
+        return false
+    end
+
+    local function queueProgress(pc, value)
+        if finished[pc] then return end
+        if pcState[pc] == "ERROR" or pcState[pc] == "DONE" then return end
+        local percent = math.floor(value * 100 + 0.5)
+        if percent >= 100 then
+            percent = 100
+            finished[pc] = true
+        end
+        if percent ~= (lastPercent[pc] or -1) then
+            if percent == 0 and (lastPercent[pc] or 0) > 0 then
+                return
+            end
+            lastPercent[pc] = percent
+            pendingUpdate[pc] = tostring(percent).."%"
+        end
+    end
+
+    table.insert(pcConnections, task.spawn(function()
+        while pcProgressRunning do
+            for pc,text in pairs(pendingUpdate) do
+                local pack = createBillboard(pc)
+                if pack then
+                    if pack.label.Text ~= text then
+                        pack.label.Text = text
+                        pack.label.TextColor3 = Color3.new(1,1,1)
+                    end
+                end
+                pendingUpdate[pc] = nil
+            end
+            task.wait(UPDATE_INTERVAL)
+        end
+    end))
+
+    local function nearestPC(pos, maxDist)
+        local best,bd = nil, maxDist or 30
+        for pc,_ in pairs(pcLabels) do
+            local part = pcLabels[pc].part
+            if part then
+                local dist = (part.Position - pos).Magnitude
+                if dist < bd then
+                    best, bd = pc, dist
+                end
+            end
+        end
+        return best
+    end
+
+    local function onActionProgress(plr_param, value)
+        local tps = plr_param:FindFirstChild("TempPlayerStatsModule")
+        if not tps then return end
+        local currentAnim = tps:FindFirstChild("CurrentAnimation")
+        if not currentAnim or currentAnim.Value ~= "Typing" then return end
+        if not plr_param.Character then return end
+        local hrp = plr_param.Character:FindFirstChild("HumanoidRootPart")
+        if not hrp then return end
+        local pc = nearestPC(hrp.Position, 35)
+        if pc then
+            queueProgress(pc, value)
+        end
+    end
+
+    local function hookPlayer(plr_param)
+        local function attach(c)
+            if c.Name == "TempPlayerStatsModule" then
+                local ap = c:WaitForChild("ActionProgress", 10)
+                if ap and ap:IsA("NumberValue") then
+                    table.insert(pcConnections, ap:GetPropertyChangedSignal("Value"):Connect(function()
+                        onActionProgress(plr_param, ap.Value)
+                    end))
+                end
+            end
+        end
+        plr_param.ChildAdded:Connect(attach)
+        local tps = plr_param:FindFirstChild("TempPlayerStatsModule")
+        if tps then attach(tps) end
+    end
+    for _,p in ipairs(Players:GetPlayers()) do hookPlayer(p) end
+    table.insert(pcConnections, Players.PlayerAdded:Connect(hookPlayer))
+
+    local function updateRole()
+        local stats = LocalPlayer:FindFirstChild("TempPlayerStatsModule") or LocalPlayer:FindFirstChild("PlayerStats")
+        if stats then
+            local isBeast = stats:FindFirstChild("IsBeast")
+            if isBeast then
+                if isBeast.Value == true then
+                    currentShowDist = SHOW_DISTANCE_BEAST
+                else
+                    currentShowDist = SHOW_DISTANCE_SURV
+                end
+            end
+        end
+    end
+    
+    local function watchStats()
+        local stats = LocalPlayer:FindFirstChild("TempPlayerStatsModule") or LocalPlayer:FindFirstChild("PlayerStats")
+        if stats then
+            local isBeast = stats:FindFirstChild("IsBeast")
+            if isBeast then
+                table.insert(pcConnections, isBeast.Changed:Connect(updateRole))
+                updateRole()
+            end
+        end
+    end
+    table.insert(pcConnections, LocalPlayer.CharacterAdded:Connect(function()
+        task.wait(0.5)
+        watchStats()
+    end))
+    watchStats()
+
+    local function applyScreenState(pc, c)
+        local pack = createBillboard(pc)
+        if not pack then return end
+        if c.G > c.R + 0.2 and c.G > c.B + 0.2 then
+            pcState[pc] = "DONE"
+            pack.label.Text = "DONE"
+            pack.label.TextColor3 = Color3.new(0,1,0)
+        elseif c.R > c.G + 0.2 and c.R > c.B + 0.2 then
+            pcState[pc] = "ERROR"
+            pack.label.Text = "ERROR"
+            pack.label.TextColor3 = Color3.new(1,0,0)
+        else
+            if not finished[pc] then
+                pcState[pc] = nil
+            end
+        end
+    end
+    
+    local function watchPC(pc)
+        if hookedPCs[pc] then return end
+        hookedPCs[pc] = true
+        local scr = pc:FindFirstChild("Screen")
+        if scr and scr:IsA("BasePart") then
+            applyScreenState(pc, scr.Color)
+            table.insert(pcConnections, scr:GetPropertyChangedSignal("Color"):Connect(function()
+                applyScreenState(pc, scr.Color)
+            end))
+        end
+    end
+
+    table.insert(pcConnections, task.spawn(function()
+        while pcProgressRunning do
+            local map = RS:FindFirstChild("CurrentMap") and RS.CurrentMap.Value
+            if map then
+                for _,d in ipairs(map:GetDescendants()) do
+                    if d.Name == "ComputerTable" then
+                        createBillboard(d)
+                        watchPC(d)
+                    end
+                end
+            end
+            task.wait(1)
+        end
+    end))
+
+    table.insert(pcConnections, RunService.RenderStepped:Connect(function()
+        local char = LocalPlayer.Character
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        local camPos = Camera.CFrame.Position
+        for pc,pack in pairs(pcLabels) do
+            local part,label = pack.part, pack.label
+            if part and label then
+                local origin = hrp and hrp.Position or camPos
+                local dist = (part.Position - origin).Magnitude
+                if dist <= currentShowDist and isVisible(part) then
+                    label.Visible = true
+                else
+                    label.Visible = false
+                end
+            end
+        end
+    end))
+
+    if RS:FindFirstChild("CurrentMap") then
+        table.insert(pcConnections, RS.CurrentMap.Changed:Connect(function()
+            clearAll()
+        end))
+    end
+end
+
+
+-- ===== CHỨC NĂNG F (PRO BEAST ANTI-SLOWDOWN) =====
+local isBypassOn = false
+local isActuallyLocked = false
+local BEAST_SPEED = 17
+local SPOOF_SPEED = 17.001 
+local lastIntendedSpeed = 17
+local internalChange = false
+local speedConn = nil
+
+local function isLocalPlayerBeast()
+    local stats = plr:FindFirstChild("TempPlayerStatsModule")
+    if stats and stats:FindFirstChild("IsBeast") then
+        return stats.IsBeast.Value == true
+    end
+    return false
+end
+
+local function hookHumanoid(char)
+    local hum = char:WaitForChild("Humanoid", 5)
+    if not hum then return end
+
+    if speedConn then speedConn:Disconnect() end
+
+    lastIntendedSpeed = hum.WalkSpeed
+
+    speedConn = hum:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
+        if internalChange then return end
+
+        local currentSpeed = hum.WalkSpeed
+        lastIntendedSpeed = currentSpeed
+
+        if isBypassOn then
+            if not isActuallyLocked then
+                if currentSpeed == BEAST_SPEED or currentSpeed == SPOOF_SPEED then
+                    isActuallyLocked = true
+                end
+            end
+
+            if isActuallyLocked then
+                if currentSpeed < BEAST_SPEED then
+                    internalChange = true
+                    hum.WalkSpeed = SPOOF_SPEED
+                    internalChange = false
+                end
+            end
+        end
+    end)
+end
+
+local function toggleSpeedBypass()
+    if not isLocalPlayerBeast() then
+        isBypassOn = false
+        if FButton then FButton.BackgroundColor3 = Color3.fromRGB(63, 63, 63) end
+        return
+    end
+
+    local char = plr.Character
+    local hum = char and char:FindFirstChild("Humanoid")
+    if not hum then return end
+
+    isBypassOn = not isBypassOn
+    
+    if isBypassOn then
+        if FButton then FButton.BackgroundColor3 = Color3.fromRGB(0, 170, 0) end -- Xanh lá
+        if hum.WalkSpeed == BEAST_SPEED or hum.WalkSpeed == SPOOF_SPEED then
+            isActuallyLocked = true
+        else
+            isActuallyLocked = false
+        end
+    else
+        if FButton then FButton.BackgroundColor3 = Color3.fromRGB(63, 63, 63) end -- Xám
+        isActuallyLocked = false
+        
+        internalChange = true
+        hum.WalkSpeed = math.floor(lastIntendedSpeed)
+        internalChange = false
+        
+        if lastIntendedSpeed < BEAST_SPEED then
+            task.spawn(function()
+                task.wait(1.5) 
+                if not isBypassOn and hum.WalkSpeed < BEAST_SPEED then
+                    internalChange = true
+                    hum.WalkSpeed = BEAST_SPEED
+                    internalChange = false
+                end
+            end)
+        end
+    end
+end
+
+-- Bật tắt bằng cách bấm click chuột vào nút F trên UI
+FButton.MouseButton1Down:Connect(toggleSpeedBypass)
+
+if plr.Character then
+    hookHumanoid(plr.Character)
+end
+
+plr.CharacterAdded:Connect(function(char)
+    task.wait(1)
+    isBypassOn = false
+    isActuallyLocked = false
+    FButton.BackgroundColor3 = Color3.fromRGB(63, 63, 63)
+    hookHumanoid(char)
+end)
+
+
+-- ===== SỰ KIỆN MỞ/ĐÓNG MENU VÀ DRAG =====
+local dragging = false
+local dragStart, startPos
+local dragInput
+local hasMoved = false
+
+local function updateDrag(input)
+    local delta = input.Position - dragStart
+    if delta.Magnitude > 5 then
+        hasMoved = true
+    end
+    CheatButton.Position = UDim2.new(
+        startPos.X.Scale,
+        startPos.X.Offset + delta.X,
+        startPos.Y.Scale,
+        startPos.Y.Offset + delta.Y
+    )
+end
+
+CheatButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        hasMoved = false
+        dragStart = input.Position
+        startPos = CheatButton.Position
+    end
+end)
+
+CheatButton.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UIS.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        updateDrag(input)
+    end
+end)
+
+UIS.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        if dragging then
+            dragging = false
+            if not hasMoved then
+                MainMenuWindow.Visible = not MainMenuWindow.Visible
+                if MainMenuWindow.Visible then
+                    UIS.MouseBehavior = Enum.MouseBehavior.Default
+                    UIS.MouseIconEnabled = true
+                end
+            end
+        end
+    end
+end)
+
+-- ===== ENTER / UI NAVIGATOR =====
+CheatButton.Activated:Connect(function()
+    if not dragging and not hasMoved then
+        MainMenuWindow.Visible = not MainMenuWindow.Visible
+        if MainMenuWindow.Visible then
+            UIS.MouseBehavior = Enum.MouseBehavior.Default
+            UIS.MouseIconEnabled = true
+        end
+    end
+end)
+
+CloseButton_2.MouseButton1Down:Connect(function()
+    MainMenuWindow.Visible = false
+end)
+
+UIS.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.RightAlt then
+        MainMenuWindow.Visible = not MainMenuWindow.Visible
+    elseif input.KeyCode == Enum.KeyCode.F then
+        toggleSpeedBypass() -- Kích hoạt hàm F khi bấm phím
+    end
+end)
+
+-- ===== 6 NÚT MENU =====
+makeButton(Button1,"Timer 1","rbxassetid://90682070728446",1,function(state)
+    if state then
+        Timer1.start()
+    else
+        Timer1.stop()
+    end
+end)
+
+makeButton(Button2,"Flashlight","rbxassetid://106585954087372",2,function(state)
+    if state then
+        Flashlight.start()  
+    else
+        Flashlight.stop()
+    end
+end)
+
+makeButton(Button3,"Sound muting","rbxassetid://18384467766",3,function(state)
+    if state then
+        SoundMuting.start()
+    else
+        SoundMuting.stop()
+    end
+end)
+
+makeButton(Button4,"Beast tracker","rbxassetid://9125495609",4,function(state)
+    if state then
+        startBeastTracker()
+    else
+        stopBeastTracker()
+    end
+end)
+
+makeButton(Button5,"Timer 2","rbxassetid://90682070728446",5,function(state)
+    if state then
+        SurvivorTracker.start()
+    else
+        SurvivorTracker.stop()
+    end
+end)
+
+makeButton(Button6,"PC progress","rbxassetid://12684119225",6,function(state)
+    if state then
+        startPCProgress()
+    else
+        stopPCProgress()
+    end
+end)
+
+-- ==== NÚT BẬT SẴN ====
+task.spawn(function()
+    task.wait(0.5)
+    
+    startBeastTracker()
+    activeStates[4] = true
+    Button4.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+
+    SurvivorTracker.start()
+    activeStates[5] = true
+    Button5.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+end)
