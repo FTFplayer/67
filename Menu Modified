@@ -697,7 +697,7 @@ local function showBanner(text, name)
     label.AnchorPoint = Vector2.new(0, 1) -- Neo vào điểm dưới cùng
     
     -- Vị trí ẩn: Giấu bên lề trái (-220px), cách đáy 20px
-    label.Position = UDim2.new(0, -220, 1, -20) 
+    label.Position = UDim2.new(0, -220, 1, 0) 
     
     label.BackgroundColor3 = Color3.fromRGB(30, 30, 30); label.TextColor3 = Color3.new(1, 1, 1)
     label.Font = Enum.Font.GothamBold; label.TextScaled = true; label.Text = text
@@ -710,9 +710,9 @@ local function showBanner(text, name)
     createRainbowBorder(label)
 
     -- Hiệu ứng trượt vào: Trượt từ trái vào, cách lề trái 10px
-    local tweenIn = TweenService:Create(label, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(0, 10, 1, -20)})
+    local tweenIn = TweenService:Create(label, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(0, 10, 1, 0)})
     -- Hiệu ứng trượt ra: Trượt lùi ra ngoài lề trái
-    local tweenOut = TweenService:Create(label, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Position = UDim2.new(0, -220, 1, -20)})
+    local tweenOut = TweenService:Create(label, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Position = UDim2.new(0, -220, 1, 0)})
 
     tweenIn:Play(); tweenIn.Completed:Wait()
     task.delay(3.4, function() tweenOut:Play(); tweenOut.Completed:Wait(); pcall(function() gui:Destroy() end) end)
@@ -932,6 +932,10 @@ SurvivorTracker.activeTimers = {}
 SurvivorTracker.uiElements = {} 
 
 local CoreGui = game:GetService("CoreGui")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
 
 local function getBeast()
     for _, player_ref in ipairs(Players:GetPlayers()) do
@@ -941,6 +945,15 @@ local function getBeast()
         end
     end
     return nil
+end
+
+-- [FIX 1]: Rút gọn tên xuống đúng 3 ký tự
+local function shortenName(name)
+    if #name > 3 then
+        return string.sub(name, 1, 3) .. "..."
+    else
+        return name
+    end
 end
 
 local function initUI()
@@ -958,14 +971,19 @@ local function initUI()
     container.Name = "TimerContainer"
     container.BackgroundTransparency = 1
     container.AnchorPoint = Vector2.new(1, 1)
-    container.Position = UDim2.new(1, -20, 1, -20)
-    container.Size = UDim2.new(0, 260, 0, 400)
+    container.Position = UDim2.new(1, -20, 1, 0)
+    -- [FIX 2]: Đổi khung chứa thành chiều ngang (Rộng 800, Cao 30)
+    container.Size = UDim2.new(0, 800, 0, 30)
     container.Parent = gui
 
     local listLayout = Instance.new("UIListLayout")
+    -- [FIX 3]: Xếp thành hàng ngang
+    listLayout.FillDirection = Enum.FillDirection.Horizontal
     listLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
     listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
-    listLayout.Padding = UDim.new(0, 5)
+    -- [FIX 4]: Phân loại theo Order để điều hướng đẩy sang trái
+    listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    listLayout.Padding = UDim.new(0, 8)
     listLayout.Parent = container
     
     SurvivorTracker.uiElements.gui = gui
@@ -974,7 +992,8 @@ end
 
 local function createTimerUI(player_ref)
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(1, 0, 0, 28)
+    -- [FIX 5]: Khung kích thước cứng để xếp vừa vặn vào hàng
+    frame.Size = UDim2.new(0, 110, 0, 28)
     frame.BackgroundTransparency = 0.3
     frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     frame.Parent = SurvivorTracker.uiElements.container
@@ -984,24 +1003,24 @@ local function createTimerUI(player_ref)
     corner.Parent = frame
 
     local nameLabel = Instance.new("TextLabel")
-    nameLabel.Size = UDim2.new(0, 165, 1, 0)
-    nameLabel.Position = UDim2.new(0, 0, 0, 0)
+    nameLabel.Size = UDim2.new(0, 55, 1, 0)
+    nameLabel.Position = UDim2.new(0, 5, 0, 0)
     nameLabel.BackgroundTransparency = 1
     nameLabel.TextColor3 = Color3.new(1, 1, 1)
-    nameLabel.TextSize = 15
+    nameLabel.TextSize = 14
     nameLabel.Font = Enum.Font.GothamBold
-    nameLabel.TextXAlignment = Enum.TextXAlignment.Right
-    nameLabel.Text = player_ref.Name .. " |"
+    nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+    nameLabel.Text = shortenName(player_ref.Name) .. " |"
     nameLabel.Parent = frame
 
     local timeLabel = Instance.new("TextLabel")
-    timeLabel.Size = UDim2.new(0, 85, 1, 0)
-    timeLabel.Position = UDim2.new(0, 170, 0, 0)
+    timeLabel.Size = UDim2.new(0, 45, 1, 0)
+    timeLabel.Position = UDim2.new(0, 60, 0, 0)
     timeLabel.BackgroundTransparency = 1
     timeLabel.TextColor3 = Color3.fromRGB(255, 51, 51)
-    timeLabel.TextSize = 15
+    timeLabel.TextSize = 14
     timeLabel.Font = Enum.Font.GothamBold
-    timeLabel.TextXAlignment = Enum.TextXAlignment.Left
+    timeLabel.TextXAlignment = Enum.TextXAlignment.Right
     timeLabel.Parent = frame
 
     return frame, timeLabel
@@ -1037,6 +1056,9 @@ local function startTimer(player_ref)
     
     if not SurvivorTracker.activeTimers[player_ref].frame then
         local f, t = createTimerUI(player_ref)
+        -- [FIX 6]: Ép thằng mới thêm vào có Order nhỏ hơn để nhảy sang bên trái
+        f.LayoutOrder = -math.floor(os.clock() * 100)
+        
         SurvivorTracker.activeTimers[player_ref].frame = f
         SurvivorTracker.activeTimers[player_ref].timeLabel = t
     end
@@ -1056,11 +1078,25 @@ function SurvivorTracker.start()
             if plrInstance ~= LocalPlayer and plrInstance ~= beast_player then
                 local char = plrInstance.Character
                 local humanoid = char and char:FindFirstChild("Humanoid")
+                
                 if humanoid then
-                    if humanoid.PlatformStand or humanoid.JumpPower == 0 then
-                        startTimer(plrInstance)
+                    local isKnocked = humanoid.PlatformStand or humanoid.JumpPower == 0
+                    local timerData = SurvivorTracker.activeTimers[plrInstance]
+
+                    if isKnocked then
+                        if not timerData then
+                            startTimer(plrInstance)
+                        else
+                            SurvivorTracker.activeTimers[plrInstance].recoverTime = nil
+                        end
                     else
-                        stopTimer(plrInstance)
+                        if timerData then
+                            if not timerData.recoverTime then
+                                timerData.recoverTime = os.clock() + 0.5
+                            elseif os.clock() > timerData.recoverTime then
+                                stopTimer(plrInstance)
+                            end
+                        end
                     end
                 else
                     stopTimer(plrInstance)
@@ -1075,7 +1111,7 @@ function SurvivorTracker.start()
             local timeLeft = math.max(0, 28.050 - elapsed)
             
             if data.timeLabel then
-                data.timeLabel.Text = string.format("%.3fs", timeLeft)
+                data.timeLabel.Text = string.format("%.1fs", timeLeft)
             end
 
             if timeLeft <= 0 then
